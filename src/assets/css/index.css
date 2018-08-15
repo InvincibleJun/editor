@@ -113,7 +113,6 @@
     red
   );
 }
-
 .c-colorpicker-hue-cursor {
   position: absolute;
   top: 0;
@@ -124,7 +123,6 @@
   background-color: #ccc;
   transform: translate(-2px, -50%);
 }
-
 .c-colorpicker-alapha {
   position: relative;
   height: 12px;
@@ -132,11 +130,9 @@
   margin: 20px;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg);
 }
-
 .c-colorpicker-alapha div {
   height: 12px;
 }
-
 .c-colorpicker-alapha span {
   position: absolute;
   top: 0;
@@ -145,4 +141,11 @@
   height: 14px;
   transform: translate(-2px, -2px);
   background-color: #ccc;
+}
+.c-editor-modal {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+}
+.c-editor-input {
 }

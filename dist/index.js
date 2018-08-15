@@ -9,19 +9,36 @@
    */
   var noop = function noop() {};
 
+  var toString = Object.prototype.toString;
+
+  /**
+   * 判断是否是plain对象
+   * @param {any} obj 源
+   */
+  var isPlainObject = function isPlainObject(obj) {
+    return obj.constructor.prototype === Object.prototype;
+  };
+
+  /**
+   * 判断是否是数组
+   */
+  var isArray = function isArray(arr) {
+    return arr && toString.call(arr) === '[object Object]';
+  };
+
   /**
    *
    * @param {*} selector 查询器 [string]
    * @param {*} parent 父元素 [htmlelement]
    * @param {*} isArray 是否复数 [boolean]
    */
-  var find = function find(selector, parent, isArray) {
+  var find = function find(selector, parent, isArray$$1) {
     // 参数修正
     if (arguments.length === 2 && typeof arguments[1] === 'boolean') {
-      isArray = parent;
+      isArray$$1 = parent;
       parent = null;
     }
-    return (parent || document)[isArray ? 'querySelectorAll' : 'querySelector'](selector);
+    return (parent || document)[isArray$$1 ? 'querySelectorAll' : 'querySelector'](selector);
   };
 
   var setAttr = function setAttr(ele, key, value) {
@@ -53,14 +70,6 @@
    */
   var focusEle = function focusEle() {
     return document.activeElement;
-  };
-
-  /**
-   * 判断是否时plain对象
-   * @param {any} obj 源
-   */
-  var isPlainObject$1 = function isPlainObject$$1(obj) {
-    return obj.constructor.prototype === Object.prototype;
   };
 
   var config = [{
@@ -98,6 +107,11 @@
   }, {
     icon: 'icon-wenzi',
     cmd: 'fontSize'
+  }, {
+    name: 'image',
+    icon: 'icon-image'
+    // cmd:
+
     // //在插入点或者选中文字上创建一个有序列表
     // {
     //   icon: 'icon-h1',
@@ -134,6 +148,7 @@
   };
 
   var uuid = 0;
+
   /**
    * 构造弹窗
    * @param {HTMLElement} child 弹出view
@@ -150,7 +165,6 @@
 
   var dropModal = (function (el, child, events) {
     var wrapper = createWrapper(child);
-    var active = false;
 
     var unbind = addEvent(el, 'click', function (e) {
       e.stopPropagation();
@@ -167,31 +181,36 @@
         active: 'c-zoom-in-top-enter-active'
       }, {
         start: function start() {
-          active = true;
           wrapper.style.display = 'block';
           wrapper.classList.add('c-zoom-in-top-enter');
         },
         end: function end() {
-          active = false;
         }
       }, 400);
     });
 
-    addEvent(document.body, 'click', function (e) {
-      if (active) return;
-      animation(wrapper, {
-        active: 'c-zoom-in-top-enter',
-        enter: 'c-zoom-in-top-enter-active'
-      }, {
-        start: function start() {
-          active = true;
-        },
-        end: function end() {
-          active = false;
-          wrapper.style.display = 'none';
-        }
-      }, 400);
-    });
+    // addEvent(document.body, 'click', function(e) {
+    //   if (active) return
+    //   animation(
+    //     wrapper,
+    //     {
+    //       active: 'c-zoom-in-top-enter',
+    //       enter: 'c-zoom-in-top-enter-active'
+    //     },
+    //     {
+    //       start: () => {
+    //         show = false
+    //         active = true
+    //       },
+    //       end: () => {
+    //         active = false
+    //         show = true
+    //         wrapper.style.display = 'none'
+    //       }
+    //     },
+    //     400
+    //   )
+    // })
   });
 
   var classCallCheck = function (instance, Constructor) {
@@ -491,7 +510,9 @@
    * @param {array<HTMLElement>} childs 子元素
    * @param {object} attrs 属性
    */
-  var render = function render(tagName, childs, attrs) {
+  var render = function render(tagName, childs) {
+    var attrs = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
     var d = document.createElement(tagName);
     if (Array.isArray(childs)) {
       childs.forEach(function (ele) {
@@ -501,16 +522,29 @@
       d.innerHTML = childs.toString();
     }
 
-    for (var i in attrs) {
-      if (attrs.hasOwnProperty(i)) {
-        if (i === 'ref' && typeof attrs[i] === 'function') {
+    var on = attrs.on;
+
+
+    if (on && isPlainObject(on)) {
+      for (var i in on) {
+        if (on.hasOwnProperty(i) && typeof on[i] === 'function') {
+          addEvent(d, i, on[i]);
+        }
+      }
+    }
+
+    for (var _i in attrs) {
+      if (attrs.hasOwnProperty(_i)) {
+        if (_i === 'ref' && typeof attrs[_i] === 'function') {
           // 抛出dom
-          attrs[i](d);
-        } else if (i === 'style') {
-          var style = mergeStyle(attrs[i]);
+          attrs[_i](d);
+        } else if (_i === 'style') {
+          var style = mergeStyle(attrs[_i]);
           d.setAttribute(style, style);
+        } else if (_i === 'class' && isArray(attrs[_i])) {
+          d.setAttribute(_i, attrs[_i].join(' '));
         } else {
-          d.setAttribute(i, attrs[i]);
+          d.setAttribute(_i, attrs[_i]);
         }
       }
     }
@@ -525,7 +559,7 @@
     if (typeof style === 'string') {
       return style;
     }
-    if (isPlainObject$1(style)) {
+    if (isPlainObject(style)) {
       var _style = '';
       for (var i in _style) {
         if (_style.hasOwnProperty(i)) {
@@ -599,6 +633,40 @@
     });
   });
 
+  var image = (function (i) {
+    var child = ImageView();
+    console.log(child);
+    var modal = dropModal(i, child);
+  });
+
+  var ImageView = function ImageView() {
+    var s = ['上传', '链接'];
+    return render('div', [render('div', [render('span', s[0], {
+      on: {
+        click: function click() {
+          debugger;
+        }
+      }
+    }), render('span', s[1])]), render('div', [UploadImage()], {
+      attrs: {
+        class: 'c-editor-image-main'
+      }
+    })]);
+  };
+
+  var UploadImage = function UploadImage() {
+    return render('input', null, {
+      type: 'file',
+      on: {
+        change: function change(file) {
+          var formData = new FormData();
+          formData.append('image', file[0]);
+          // console.log(file)
+        }
+      }
+    });
+  };
+
   var Editor = function () {
     function Editor(selector, option) {
       classCallCheck(this, Editor);
@@ -620,6 +688,7 @@
         this.container = find(this.selector);
         this.editor = document.createElement('div');
         this.editor.classList.add('c-editor-content');
+
         addEvent(this.editor, 'blur', function () {
           return _this.blur();
         });
@@ -635,13 +704,16 @@
         var _this2 = this;
 
         var toolbar = document.createElement('div');
+
         toolbar.classList.add('c-editor-toolbar-wrapper');
+
         config.forEach(function (val, key) {
           var icon = val.icon,
               cmd = val.cmd,
-              params = val.params;
+              params = val.params,
+              name = val.name;
 
-          var i = _this2.createIcon(icon, cmd, params);
+          var i = _this2.createIcon(icon, cmd, params, name);
           toolbar.appendChild(i);
         });
         this.container.insertBefore(toolbar, this.editor);
@@ -659,7 +731,7 @@
       }
     }, {
       key: 'createIcon',
-      value: function createIcon(icon, cmd, params) {
+      value: function createIcon(icon, cmd, params, name) {
         var _this3 = this;
 
         var i = document.createElement('i');
@@ -668,18 +740,24 @@
         i.classList.add('iconfont');
         i.classList.add(icon);
 
-        if (cmd === 'foreColor') {
-          colorSelector(i, cmd, params);
-        } else if (cmd === 'fontSize') {
-          fontSizeSelector(i, exec, cmd);
+        if (name === 'image') {
+          image(i);
+          // let modal = createModal(i)
         } else {
-          addEvent(i, 'click', function (e) {
-            // this.selection.createEmptyRange()
-            _this3.toolCickHandler(e, cmd, params);
-            var status = _this3.status(cmd);
-            i.classList[status ? 'add' : 'remove']('c-edit-icon-active');
-          });
+          if (cmd === 'foreColor') {
+            colorSelector(i, cmd, params);
+          } else if (cmd === 'fontSize') {
+            fontSizeSelector(i, exec, cmd);
+          } else {
+            addEvent(i, 'click', function (e) {
+              // this.selection.createEmptyRange()
+              _this3.toolCickHandler(e, cmd, params);
+              var status = _this3.status(cmd);
+              i.classList[status ? 'add' : 'remove']('c-edit-icon-active');
+            });
+          }
         }
+
         return i;
       }
     }, {
@@ -705,12 +783,7 @@
           this.editor.focus();
         }
 
-        // status(cmd)
-        // if (cmd !== 'heading') {
         document.execCommand(cmd, false, params);
-        // } else {
-        // document.execCommand('formatBlock', false, params)
-        // }
       }
     }]);
     return Editor;

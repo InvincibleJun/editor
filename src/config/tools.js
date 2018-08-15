@@ -43,6 +43,11 @@ export default [
   {
     icon: 'icon-wenzi',
     cmd: 'fontSize'
+  },
+  {
+    name: 'image',
+    icon: 'icon-image'
+    // cmd:
   }
   // //在插入点或者选中文字上创建一个有序列表
   // {

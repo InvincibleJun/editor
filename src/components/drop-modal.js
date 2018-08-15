@@ -2,6 +2,7 @@ import { addEvent } from '../utils/dom-core'
 import animation from './animation'
 
 let uuid = 0
+
 /**
  * 构造弹窗
  * @param {HTMLElement} child 弹出view
@@ -48,26 +49,26 @@ export default (el, child, events) => {
     )
   })
 
-  addEvent(document.body, 'click', function(e) {
-    if (active) return
-    animation(
-      wrapper,
-      {
-        active: 'c-zoom-in-top-enter',
-        enter: 'c-zoom-in-top-enter-active'
-      },
-      {
-        start: () => {
-          show = false
-          active = true
-        },
-        end: () => {
-          active = false
-          show = true
-          wrapper.style.display = 'none'
-        }
-      },
-      400
-    )
-  })
+  // addEvent(document.body, 'click', function(e) {
+  //   if (active) return
+  //   animation(
+  //     wrapper,
+  //     {
+  //       active: 'c-zoom-in-top-enter',
+  //       enter: 'c-zoom-in-top-enter-active'
+  //     },
+  //     {
+  //       start: () => {
+  //         show = false
+  //         active = true
+  //       },
+  //       end: () => {
+  //         active = false
+  //         show = true
+  //         wrapper.style.display = 'none'
+  //       }
+  //     },
+  //     400
+  //   )
+  // })
 }

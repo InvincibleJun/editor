@@ -2,6 +2,9 @@ import { find, setAttr, addEvent, focusEle } from './utils/dom-core'
 import config from './config/tools'
 import colorSelector from './components/color-selector'
 import fontSizeSelector from './components/fontSize-selector'
+// import createModal from './components/modal'
+
+import image from './components/image/index'
 
 class Editor {
   constructor(selector, option) {
@@ -18,6 +21,7 @@ class Editor {
     this.container = find(this.selector)
     this.editor = document.createElement('div')
     this.editor.classList.add('c-editor-content')
+
     addEvent(this.editor, 'blur', () => this.blur())
     addEvent(this.editor, 'focus', () => this.focus())
     setAttr(this.editor, 'contenteditable', true)
@@ -26,10 +30,12 @@ class Editor {
 
   toolsInit() {
     var toolbar = document.createElement('div')
+
     toolbar.classList.add('c-editor-toolbar-wrapper')
+
     config.forEach((val, key) => {
-      const { icon, cmd, params } = val
-      let i = this.createIcon(icon, cmd, params)
+      const { icon, cmd, params, name } = val
+      let i = this.createIcon(icon, cmd, params, name)
       toolbar.appendChild(i)
     })
     this.container.insertBefore(toolbar, this.editor)
@@ -46,25 +52,31 @@ class Editor {
       : false
   }
 
-  createIcon(icon, cmd, params) {
+  createIcon(icon, cmd, params, name) {
     let i = document.createElement('i')
     let exec = this.exec.bind(this)
 
     i.classList.add('iconfont')
     i.classList.add(icon)
 
-    if (cmd === 'foreColor') {
-      colorSelector(i, cmd, params)
-    } else if (cmd === 'fontSize') {
-      fontSizeSelector(i, exec, cmd)
+    if (name === 'image') {
+      image(i)
+      // let modal = createModal(i)
     } else {
-      addEvent(i, 'click', e => {
-        // this.selection.createEmptyRange()
-        this.toolCickHandler(e, cmd, params)
-        let status = this.status(cmd)
-        i.classList[status ? 'add' : 'remove']('c-edit-icon-active')
-      })
+      if (cmd === 'foreColor') {
+        colorSelector(i, cmd, params)
+      } else if (cmd === 'fontSize') {
+        fontSizeSelector(i, exec, cmd)
+      } else {
+        addEvent(i, 'click', e => {
+          // this.selection.createEmptyRange()
+          this.toolCickHandler(e, cmd, params)
+          let status = this.status(cmd)
+          i.classList[status ? 'add' : 'remove']('c-edit-icon-active')
+        })
+      }
     }
+
     return i
   }
 
@@ -87,12 +99,7 @@ class Editor {
       this.editor.focus()
     }
 
-    // status(cmd)
-    // if (cmd !== 'heading') {
     document.execCommand(cmd, false, params)
-    // } else {
-    // document.execCommand('formatBlock', false, params)
-    // }
   }
 }
 
