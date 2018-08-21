@@ -540,7 +540,7 @@
           attrs[_i](d);
         } else if (_i === 'style') {
           var style = mergeStyle(attrs[_i]);
-          d.setAttribute(style, style);
+          d.setAttribute('style', style);
         } else if (_i === 'class' && isArray(attrs[_i])) {
           d.setAttribute(_i, attrs[_i].join(' '));
         } else {
@@ -633,6 +633,42 @@
     });
   });
 
+  var iframeUpload = function iframeUpload(file, _ref2) {
+    var url = _ref2.url;
+
+    var target = 'upload';
+    var input = void 0;
+
+    var form = render('form', [render('input', null, {
+      type: 'file',
+      name: 'file',
+      ref: function ref(i) {
+        return input = i;
+      }
+    })], {
+      action: url,
+      enctype: 'multipart/form-data',
+      target: target,
+      method: 'post'
+    });
+
+    var iframe = render('iframe', null, {
+      id: 'upload',
+      name: 'upload',
+      style: 'display:none'
+    });
+
+    iframe.onload = function (e) {
+      var _result = JSON.parse(this.contentDocument.getElementsByTagName('body')[0].innerHTML);
+    };
+    document.body.appendChild(iframe);
+
+    document.body.appendChild(form);
+
+    input.value = file;
+    form.submit();
+  };
+
   var image = (function (i) {
     var child = ImageView();
     console.log(child);
@@ -641,27 +677,37 @@
 
   var ImageView = function ImageView() {
     var s = ['上传', '链接'];
+    var file = void 0;
+
     return render('div', [render('div', [render('span', s[0], {
       on: {
         click: function click() {
           debugger;
         }
       }
-    }), render('span', s[1])]), render('div', [UploadImage()], {
-      attrs: {
+    }), render('span', s[1])]), render('div', [UploadImage(function (f) {
+      return file = f;
+    })], {
+      attr: {
         class: 'c-editor-image-main'
+      }
+    }), render('button', '提交', {
+      on: {
+        click: function click(e) {
+          iframeUpload(file[0], {
+            url: 'http://imgtest.357.com/upload/adminpic'
+          });
+        }
       }
     })]);
   };
 
-  var UploadImage = function UploadImage() {
+  var UploadImage = function UploadImage(cb) {
     return render('input', null, {
       type: 'file',
       on: {
         change: function change(file) {
-          var formData = new FormData();
-          formData.append('image', file[0]);
-          // console.log(file)
+          cb(file);
         }
       }
     });

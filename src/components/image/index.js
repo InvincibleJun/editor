@@ -2,6 +2,7 @@ import { find, setAttr, addEvent, focusEle } from '../../utils/dom-core'
 import dropModal from '../drop-modal'
 
 import r from '../../utils/render'
+import { iframeUpload } from '../upload'
 
 export default i => {
   let child = ImageView()
@@ -11,6 +12,8 @@ export default i => {
 
 const ImageView = function() {
   let s = ['上传', '链接']
+  let file
+
   return r('div', [
     r('div', [
       r('span', s[0], {
@@ -22,22 +25,29 @@ const ImageView = function() {
       }),
       r('span', s[1])
     ]),
-    r('div', [UploadImage()], {
-      attrs: {
+    r('div', [UploadImage(f => (file = f))], {
+      attr: {
         class: 'c-editor-image-main'
+      }
+    }),
+    r('button', '提交', {
+      on: {
+        click: e => {
+          iframeUpload(file[0], {
+            url: 'http://imgtest.357.com/upload/adminpic'
+          })
+        }
       }
     })
   ])
 }
 
-const UploadImage = function() {
+const UploadImage = function(cb) {
   return r('input', null, {
     type: 'file',
     on: {
       change: file => {
-        var formData = new FormData()
-        formData.append('image', file[0])
-        // console.log(file)
+        cb(file)
       }
     }
   })

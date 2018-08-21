@@ -34,7 +34,7 @@ const render = function(tagName, childs, attrs = {}) {
         attrs[i](d)
       } else if (i === 'style') {
         let style = mergeStyle(attrs[i])
-        d.setAttribute(style, style)
+        d.setAttribute('style', style)
       } else if (i === 'class' && isArray(attrs[i])) {
         d.setAttribute(i, attrs[i].join(' '))
       } else {
