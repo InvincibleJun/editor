@@ -20,13 +20,12 @@ export default class Media {
     this.type = type
     this.ele = hanlderELement
 
-    this.options = Object.assign(defaultOptions, editor.options[type])
-
+    this.options = Object.assign({}, defaultOptions, editor.options[type])
+    console.log(this.options)
     this.init()
   }
 
   init() {
-    // let child =
     let modal = dropModal(this.ele, this.ImageView)
     let unbinds = ['dragleave', 'drop', 'dragenter', 'dragover'].map(val =>
       addEvent(document, val, e => {
@@ -154,6 +153,7 @@ export default class Media {
                 this.dropFile(e)
               },
               click: e => {
+                e.stopPropagation()
                 upload.select()
               }
             },

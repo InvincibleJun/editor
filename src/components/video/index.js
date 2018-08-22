@@ -16,5 +16,7 @@ export default class Video {
     this.render()
   }
 
-  render() {}
+  render() {
+    return
+  }
 }

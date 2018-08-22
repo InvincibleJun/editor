@@ -27,7 +27,8 @@ export default (el, child, events) => {
   let active = false
 
   let unbind = addEvent(el, 'click', function(e) {
-    e.stopPropagation()
+    debugger
+    // e.stopPropagation()
     let { left, top, height } = el.getBoundingClientRect()
     wrapper.style.left = left + 'px'
     wrapper.style.top = top + height + 'px'
@@ -45,30 +46,29 @@ export default (el, child, events) => {
         },
         end: () => {
           active = false
-        }
-      },
-      400
-    )
-  })
-
-  addEvent(document.body, 'click', function(e) {
-    console.log(checkTarget(e.target, wrapper))
-    if (active) return
-    animation(
-      wrapper,
-      {
-        enter: 'c-zoom-in-top-leave-active',
-        active: 'c-zoom-in-top-leave'
-      },
-      {
-        start: () => {
-          show = false
-          active = true
-        },
-        end: () => {
-          active = false
-          show = true
-          wrapper.style.display = 'none'
+          let unbindBody = addEvent(document.body, 'click', function(e) {
+            if (checkTarget(e.target, wrapper)) return
+            animation(
+              wrapper,
+              {
+                to: 'c-zoom-in-top-leave',
+                active: 'c-zoom-in-top-leave-active'
+              },
+              {
+                start: () => {
+                  show = false
+                  active = true
+                },
+                end: () => {
+                  active = false
+                  show = true
+                  wrapper.style.display = 'none'
+                  unbindBody()
+                }
+              },
+              400
+            )
+          })
         }
       },
       400
@@ -77,12 +77,9 @@ export default (el, child, events) => {
 }
 
 const checkTarget = function(target, ele) {
-  while (ele) {
-    if (ele === document.body) return false
+  while (target) {
     if (ele === target) return true
-    ele = ele.parent
+    if (target === document.body) return false
+    target = target.parentNode
   }
-  // while (el) {
-
-  // }
 }

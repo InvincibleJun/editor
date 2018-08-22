@@ -18,6 +18,10 @@ export const formDataUpload = function(url, { change, load }) {
     change(e)
   }
 
+  input.onclick = function(e) {
+    e.stopPropagation()
+  }
+
   return {
     select() {
       input.click()
@@ -25,6 +29,7 @@ export const formDataUpload = function(url, { change, load }) {
     destory() {
       document.body.removeChild(input)
     },
+
     send() {
       uploadAjax(url, file, { load })
     }
@@ -100,6 +105,10 @@ export const iframeUpload = function(url, { change, load }) {
 
   input.onchange = function(e) {
     change(e)
+  }
+
+  input.onclick = function(e) {
+    e.stopPropagation()
   }
 
   return {

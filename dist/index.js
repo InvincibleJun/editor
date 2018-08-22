@@ -133,19 +133,25 @@
         start = _events$start === undefined ? noop : _events$start,
         _events$end = events.end,
         end = _events$end === undefined ? noop : _events$end;
-    var enter = option.enter,
-        active = option.active;
+    var _option$enter = option.enter,
+        enter = _option$enter === undefined ? '' : _option$enter,
+        active = option.active,
+        _option$to = option.to,
+        to = _option$to === undefined ? '' : _option$to;
 
     start();
-    el.classList.add(enter);
 
+    enter && el.classList.add(enter);
+    to && el.classList.add(to);
+    // debugger
     setTimeout(function () {
-      el.classList.remove(enter);
       el.classList.add(active);
+      enter && el.classList.remove(enter);
     }, 0);
 
     setTimeout(function () {
       el.classList.remove(active);
+      to && el.classList.remove(to);
       end();
     }, timeout);
   };
@@ -169,10 +175,10 @@
   var dropModal = (function (el, child, events) {
     ++uuid;
     var wrapper = createWrapper(child);
-    var active = false;
 
     var unbind = addEvent(el, 'click', function (e) {
-      e.stopPropagation();
+      debugger;
+      // e.stopPropagation()
 
       var _el$getBoundingClient = el.getBoundingClientRect(),
           left = _el$getBoundingClient.left,
@@ -186,42 +192,34 @@
         active: 'c-zoom-in-top-enter-active'
       }, {
         start: function start() {
-          active = true;
           wrapper.style.display = 'block';
         },
         end: function end() {
-          active = false;
-        }
-      }, 400);
-    });
-
-    addEvent(document.body, 'click', function (e) {
-      console.log(checkTarget(e.target, wrapper));
-      if (active) return;
-      animation(wrapper, {
-        enter: 'c-zoom-in-top-leave-active',
-        active: 'c-zoom-in-top-leave'
-      }, {
-        start: function start() {
-          active = true;
-        },
-        end: function end() {
-          active = false;
-          wrapper.style.display = 'none';
+          var unbindBody = addEvent(document.body, 'click', function (e) {
+            if (checkTarget(e.target, wrapper)) return;
+            animation(wrapper, {
+              to: 'c-zoom-in-top-leave',
+              active: 'c-zoom-in-top-leave-active'
+            }, {
+              start: function start() {
+              },
+              end: function end() {
+                wrapper.style.display = 'none';
+                unbindBody();
+              }
+            }, 400);
+          });
         }
       }, 400);
     });
   });
 
   var checkTarget = function checkTarget(target, ele) {
-    while (ele) {
-      if (ele === document.body) return false;
+    while (target) {
       if (ele === target) return true;
-      ele = ele.parent;
+      if (target === document.body) return false;
+      target = target.parentNode;
     }
-    // while (el) {
-
-    // }
   };
 
   var classCallCheck = function (instance, Constructor) {
@@ -666,6 +664,10 @@
       change(e);
     };
 
+    input.onclick = function (e) {
+      e.stopPropagation();
+    };
+
     return {
       select: function select() {
         input.click();
@@ -717,15 +719,14 @@
       this.type = type;
       this.ele = hanlderELement;
 
-      this.options = Object.assign(defaultOptions, editor.options[type]);
-
+      this.options = Object.assign({}, defaultOptions, editor.options[type]);
+      console.log(this.options);
       this.init();
     }
 
     createClass(Media, [{
       key: 'init',
       value: function init() {
-        // let child =
         var modal = dropModal(this.ele, this.ImageView);
         var unbinds = ['dragleave', 'drop', 'dragenter', 'dragover'].map(function (val) {
           return addEvent(document, val, function (e) {
@@ -847,6 +848,7 @@
               _this2.dropFile(e);
             },
             click: function click(e) {
+              e.stopPropagation();
               upload.select();
             }
           },
