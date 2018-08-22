@@ -4,12 +4,13 @@ import colorSelector from './components/color-selector'
 import fontSizeSelector from './components/fontSize-selector'
 // import createModal from './components/modal'
 
-import image from './components/image/index'
+import Media from './components/media/index'
+// import Video from './components/video/index'
 
 class Editor {
-  constructor(selector, option) {
+  constructor(selector, options) {
     this.selector = selector
-    this.option = option
+    this.options = options
     this.init()
     this.toolsInit()
   }
@@ -59,9 +60,11 @@ class Editor {
     i.classList.add('iconfont')
     i.classList.add(icon)
 
-    if (name === 'image') {
-      image(i)
+    if (name === 'image' || name === 'video') {
+      new Media(i, this, name)
       // let modal = createModal(i)
+      // } else if () {
+      //   // new Video(i, this)
     } else {
       if (cmd === 'foreColor') {
         colorSelector(i, cmd, params)

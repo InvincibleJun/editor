@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
-  <link rel="stylesheet" href="../src/assets/icons/iconfont.css">
-  <link rel="stylesheet" href="../src/assets/css/index.css">
+  <link rel="stylesheet" href="/assets/icons/iconfont.css">
+  <link rel="stylesheet" href="/assets/css/index.css">
 </head>
 
 <body>
@@ -25,9 +25,22 @@
     <button>取消</button>
   </div> -->
   <div id="edit"></div>
-  <script src="../dist/index.js"></script>
+  <script src="/index.js"></script>
   <script>
-    new Editor('#edit')
+    new Editor('#edit',
+      {
+        image: {
+          // 图片单行显示
+          singleLine: true,
+          uploadUrl: true,
+          // 上传路径
+          action: 'http://imgtest.357.com/upload/adminpic',
+
+        }, video: {
+          action: 'http://imgtest.357.com/upload/adminvideo'
+        }
+      }
+    )
   </script>
 </body>
 

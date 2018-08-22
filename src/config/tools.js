@@ -48,6 +48,10 @@ export default [
     name: 'image',
     icon: 'icon-image'
     // cmd:
+  },
+  {
+    name: 'video',
+    icon: 'icon-shipin'
   }
   // //在插入点或者选中文字上创建一个有序列表
   // {

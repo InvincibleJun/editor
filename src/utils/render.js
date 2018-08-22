@@ -20,16 +20,17 @@ const render = function(tagName, childs, attrs = {}) {
   const { on } = attrs
 
   if (on && isPlainObject(on)) {
-    for (let i in on) {
-      if (on.hasOwnProperty(i) && typeof on[i] === 'function') {
-        addEvent(d, i, on[i])
-      }
-    }
   }
 
   for (let i in attrs) {
     if (attrs.hasOwnProperty(i)) {
-      if (i === 'ref' && typeof attrs[i] === 'function') {
+      if (i === 'on' && isPlainObject(on)) {
+        for (let i in on) {
+          if (on.hasOwnProperty(i) && typeof on[i] === 'function') {
+            addEvent(d, i, on[i])
+          }
+        }
+      } else if (i === 'ref' && typeof attrs[i] === 'function') {
         // 抛出dom
         attrs[i](d)
       } else if (i === 'style') {
@@ -54,12 +55,13 @@ const mergeStyle = function(style) {
     return style
   }
   if (isPlainObject(style)) {
-    let style = ''
+    let s = ''
     for (let i in style) {
       if (style.hasOwnProperty(i)) {
-        style += `${makeStyleName(i)}:${style[i]}`
+        s += `${makeStyleName(i)}:${style[i]};`
       }
     }
+    return s
   }
 }
 

@@ -1,3 +1,4 @@
+(function(l, i, v, e) { v = l.createElement(i); v.async = 1; v.src = '//' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; e = l.getElementsByTagName(i)[0]; e.parentNode.insertBefore(v, e)})(document, 'script');
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -111,7 +112,9 @@
     name: 'image',
     icon: 'icon-image'
     // cmd:
-
+  }, {
+    name: 'video',
+    icon: 'icon-shipin'
     // //在插入点或者选中文字上创建一个有序列表
     // {
     //   icon: 'icon-h1',
@@ -155,16 +158,18 @@
    */
   var createWrapper = function createWrapper(child) {
     var wrapper = document.createElement('div');
-    wrapper.id = 'c-edit-drop-modal-' + ++uuid;
-    wrapper.classList.add('c-edit-draop-modal-view');
-    wrapper.classList.add('c-edit-draop-hide');
+    wrapper.id = 'c-edit-drop-modal-' + uuid;
+    wrapper.classList.add('c-edit-drop-modal-view');
+    wrapper.classList.add('c-edit-drop-hide');
     wrapper.appendChild(child);
     document.body.appendChild(wrapper);
     return wrapper;
   };
 
   var dropModal = (function (el, child, events) {
+    ++uuid;
     var wrapper = createWrapper(child);
+    var active = false;
 
     var unbind = addEvent(el, 'click', function (e) {
       e.stopPropagation();
@@ -181,37 +186,43 @@
         active: 'c-zoom-in-top-enter-active'
       }, {
         start: function start() {
+          active = true;
           wrapper.style.display = 'block';
-          wrapper.classList.add('c-zoom-in-top-enter');
         },
         end: function end() {
+          active = false;
         }
       }, 400);
     });
 
-    // addEvent(document.body, 'click', function(e) {
-    //   if (active) return
-    //   animation(
-    //     wrapper,
-    //     {
-    //       active: 'c-zoom-in-top-enter',
-    //       enter: 'c-zoom-in-top-enter-active'
-    //     },
-    //     {
-    //       start: () => {
-    //         show = false
-    //         active = true
-    //       },
-    //       end: () => {
-    //         active = false
-    //         show = true
-    //         wrapper.style.display = 'none'
-    //       }
-    //     },
-    //     400
-    //   )
-    // })
+    addEvent(document.body, 'click', function (e) {
+      console.log(checkTarget(e.target, wrapper));
+      if (active) return;
+      animation(wrapper, {
+        enter: 'c-zoom-in-top-leave-active',
+        active: 'c-zoom-in-top-leave'
+      }, {
+        start: function start() {
+          active = true;
+        },
+        end: function end() {
+          active = false;
+          wrapper.style.display = 'none';
+        }
+      }, 400);
+    });
   });
+
+  var checkTarget = function checkTarget(target, ele) {
+    while (ele) {
+      if (ele === document.body) return false;
+      if (ele === target) return true;
+      ele = ele.parent;
+    }
+    // while (el) {
+
+    // }
+  };
 
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -525,26 +536,26 @@
     var on = attrs.on;
 
 
-    if (on && isPlainObject(on)) {
-      for (var i in on) {
-        if (on.hasOwnProperty(i) && typeof on[i] === 'function') {
-          addEvent(d, i, on[i]);
-        }
-      }
-    }
+    if (on && isPlainObject(on)) ;
 
-    for (var _i in attrs) {
-      if (attrs.hasOwnProperty(_i)) {
-        if (_i === 'ref' && typeof attrs[_i] === 'function') {
+    for (var i in attrs) {
+      if (attrs.hasOwnProperty(i)) {
+        if (i === 'on' && isPlainObject(on)) {
+          for (var _i in on) {
+            if (on.hasOwnProperty(_i) && typeof on[_i] === 'function') {
+              addEvent(d, _i, on[_i]);
+            }
+          }
+        } else if (i === 'ref' && typeof attrs[i] === 'function') {
           // 抛出dom
-          attrs[_i](d);
-        } else if (_i === 'style') {
-          var style = mergeStyle(attrs[_i]);
+          attrs[i](d);
+        } else if (i === 'style') {
+          var style = mergeStyle(attrs[i]);
           d.setAttribute('style', style);
-        } else if (_i === 'class' && isArray(attrs[_i])) {
-          d.setAttribute(_i, attrs[_i].join(' '));
+        } else if (i === 'class' && isArray(attrs[i])) {
+          d.setAttribute(i, attrs[i].join(' '));
         } else {
-          d.setAttribute(_i, attrs[_i]);
+          d.setAttribute(i, attrs[i]);
         }
       }
     }
@@ -560,12 +571,13 @@
       return style;
     }
     if (isPlainObject(style)) {
-      var _style = '';
-      for (var i in _style) {
-        if (_style.hasOwnProperty(i)) {
-          _style += makeStyleName(i) + ':' + _style[i];
+      var s = '';
+      for (var i in style) {
+        if (style.hasOwnProperty(i)) {
+          s += makeStyleName(i) + ':' + style[i] + ';';
         }
       }
+      return s;
     }
   };
 
@@ -633,92 +645,241 @@
     });
   });
 
-  var iframeUpload = function iframeUpload(file, _ref2) {
-    var url = _ref2.url;
+  var formDataUpload = function formDataUpload(url, _ref) {
+    var change = _ref.change,
+        load = _ref.load;
 
-    var target = 'upload';
-    var input = void 0;
-
-    var form = render('form', [render('input', null, {
-      type: 'file',
-      name: 'file',
-      ref: function ref(i) {
-        return input = i;
-      }
-    })], {
-      action: url,
-      enctype: 'multipart/form-data',
-      target: target,
-      method: 'post'
-    });
-
-    var iframe = render('iframe', null, {
-      id: 'upload',
-      name: 'upload',
-      style: 'display:none'
-    });
-
-    iframe.onload = function (e) {
-      var _result = JSON.parse(this.contentDocument.getElementsByTagName('body')[0].innerHTML);
-    };
-    document.body.appendChild(iframe);
-
-    document.body.appendChild(form);
-
-    input.value = file;
-    form.submit();
-  };
-
-  var image = (function (i) {
-    var child = ImageView();
-    console.log(child);
-    var modal = dropModal(i, child);
-  });
-
-  var ImageView = function ImageView() {
-    var s = ['上传', '链接'];
     var file = void 0;
 
-    return render('div', [render('div', [render('span', s[0], {
-      on: {
-        click: function click() {
-          debugger;
-        }
+    var input = render('input', [], {
+      type: 'file',
+      name: 'file',
+      class: 'c-editor-hide'
+    });
+
+    document.body.appendChild(input);
+
+    input.click();
+
+    input.onchange = function (e) {
+      file = e.target.files[0];
+      change(e);
+    };
+
+    return {
+      select: function select() {
+        input.click();
+      },
+      destory: function destory() {
+        document.body.removeChild(input);
+      },
+      send: function send() {
+        uploadAjax(url, file, { load: load });
       }
-    }), render('span', s[1])]), render('div', [UploadImage(function (f) {
-      return file = f;
-    })], {
-      attr: {
-        class: 'c-editor-image-main'
+    };
+  };
+
+  var uploadAjax = function uploadAjax(url, file, _ref2) {
+    var load = _ref2.load;
+
+    var xhr = new XMLHttpRequest();
+
+    var form = new FormData();
+
+    form.append('file', file);
+
+    xhr.open('POST', url, true);
+
+    xhr.send(form);
+
+    xhr.onload = function (e) {
+      var res = JSON.parse(e.target.response);
+      load(null, res.msg.url);
+    };
+  };
+
+  var defaultOptions = {
+    action: '',
+    singleLine: true,
+    uploadUrl: false
+
+    /**
+     * 多媒体弹框
+     * hanlderELement {htmlElement} 触发dom对象
+     * editor {object} 实例化编辑器
+     */
+  };
+  var Media = function () {
+    function Media(hanlderELement, editor, type) {
+      classCallCheck(this, Media);
+
+      this.ed = editor;
+      this.type = type;
+      this.ele = hanlderELement;
+
+      this.options = Object.assign(defaultOptions, editor.options[type]);
+
+      this.init();
+    }
+
+    createClass(Media, [{
+      key: 'init',
+      value: function init() {
+        // let child =
+        var modal = dropModal(this.ele, this.ImageView);
+        var unbinds = ['dragleave', 'drop', 'dragenter', 'dragover'].map(function (val) {
+          return addEvent(document, val, function (e) {
+            e.preventDefault();
+          });
+        });
       }
-    }), render('button', '提交', {
-      on: {
-        click: function click(e) {
-          iframeUpload(file[0], {
-            url: 'http://imgtest.357.com/upload/adminpic'
+    }, {
+      key: 'insert',
+      value: function insert(url) {
+        var template = this.type === 'image' ? '<img src="' + url + '" style="max-width: 100%;" />' : '<iframe src=\'' + url + '\' frameborder=0 autoplay="false" ></iframe>';
+
+        if (this.options.singleLine) template += '<p><br /></p>';
+
+        this.ed.exec('insertHTML', template);
+      }
+    }, {
+      key: 'dropFile',
+      value: function dropFile(e) {
+        var _this = this;
+
+        e.preventDefault();
+
+        // 过滤文件夹和无后缀文件
+        var fileList = [].filter.call(e.dataTransfer.files, function (val) {
+          return val.type;
+        });
+
+        if (fileList.length === 0) return;
+
+        for (var i = 0; i < fileList.length; i++) {
+          uploadAjax(this.options.action, fileList[i], {
+            load: function load(e, url) {
+              _this.insert(url);
+            }
           });
         }
       }
-    })]);
-  };
-
-  var UploadImage = function UploadImage(cb) {
-    return render('input', null, {
-      type: 'file',
-      on: {
-        change: function change(file) {
-          cb(file);
-        }
+    }, {
+      key: 'Button',
+      value: function Button(cb) {
+        return render('button', '上传', {
+          on: {
+            click: function click(e) {
+              cb(e);
+            }
+          }
+        });
       }
-    });
-  };
+    }, {
+      key: 'ImageView',
+      get: function get$$1() {
+        var _this2 = this;
+
+        var status = 0;
+        var uploadView = void 0;
+        var urlView = void 0;
+
+        var upload = formDataUpload(this.options.action, {
+          change: function change(e) {},
+
+          load: function load(e, res) {
+            if (!e) {
+              _this2.insert(res);
+            }
+          }
+        });
+
+        var inputUrl = '';
+
+        return render('div', [render('div', [render('button', '上传', {
+          on: {
+            click: function click() {
+              if (status) {
+                uploadView.classList.remove('c-editor-hide');
+                uploadView.classList.add('c-editor-show');
+                urlView.classList.remove('c-editor-show');
+                urlView.classList.add('c-editor-hide');
+                status = 0;
+              }
+            }
+          }
+        }), render('button', '链接', {
+          on: {
+            click: function click() {
+              if (!status) {
+                urlView.classList.remove('c-editor-hide');
+                urlView.classList.add('c-editor-show');
+                uploadView.classList.remove('c-editor-show');
+                uploadView.classList.add('c-editor-hide');
+                status = 1;
+              }
+            }
+          }
+        })]), render('div', [render('input', null, {
+          type: 'text',
+          ref: function ref(i) {
+            return inputUrl = i;
+          },
+          placeholder: '请输入图片url'
+        }), render('button', '提交', {
+          on: {
+            click: function click() {
+              var v = inputUrl.value;
+              // check url include http or https, and is \\
+              if (/^\/\/|http:\/\/|https:\/\//gi.test(v)) {
+                _this2.insert(v);
+              }
+            }
+          }
+        })], {
+          ref: function ref(i) {
+            return urlView = i;
+          },
+          class: 'c-editor-hide'
+        }), render('div', [render('div', '拖拽区域', {
+          on: {
+            drop: function drop(e) {
+              _this2.dropFile(e);
+            },
+            click: function click(e) {
+              upload.select();
+            }
+          },
+          style: {
+            width: '200px',
+            height: '200px',
+            border: '1px solid black'
+          }
+        }), render('button', '提交', {
+          on: {
+            click: function click(e) {
+              upload.send();
+            }
+          }
+        })], {
+          ref: function ref(i) {
+            return uploadView = i;
+          },
+          class: 'c-editor-show'
+        })]);
+      }
+    }]);
+    return Media;
+  }();
+
+  // import Video from './components/video/index'
 
   var Editor = function () {
-    function Editor(selector, option) {
+    function Editor(selector, options) {
       classCallCheck(this, Editor);
 
       this.selector = selector;
-      this.option = option;
+      this.options = options;
       this.init();
       this.toolsInit();
     }
@@ -786,9 +947,11 @@
         i.classList.add('iconfont');
         i.classList.add(icon);
 
-        if (name === 'image') {
-          image(i);
+        if (name === 'image' || name === 'video') {
+          new Media(i, this, name);
           // let modal = createModal(i)
+          // } else if () {
+          //   // new Video(i, this)
         } else {
           if (cmd === 'foreColor') {
             colorSelector(i, cmd, params);

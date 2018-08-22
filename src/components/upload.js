@@ -1,19 +1,54 @@
 import render from '../utils/render'
 
-export const formDataUpload = function(file, { url }) {
-  if (file && url && typeof url === 'string') {
-    let xhr = new XMLHttpRequest()
-    let form = new FormData()
-    form.append('file', file)
-    xhr.open('POST', url, true)
-    xhr.send(form)
-    xhr.onload = function(e) {
-      console.log(e)
+export const formDataUpload = function(url, { change, load }) {
+  let file
+
+  let input = render('input', [], {
+    type: 'file',
+    name: 'file',
+    class: 'c-editor-hide'
+  })
+
+  document.body.appendChild(input)
+
+  input.click()
+
+  input.onchange = function(e) {
+    file = e.target.files[0]
+    change(e)
+  }
+
+  return {
+    select() {
+      input.click()
+    },
+    destory() {
+      document.body.removeChild(input)
+    },
+    send() {
+      uploadAjax(url, file, { load })
     }
   }
 }
 
-export const iframeUpload = function(file, { url }) {
+export const uploadAjax = function(url, file, { load }) {
+  let xhr = new XMLHttpRequest()
+
+  let form = new FormData()
+
+  form.append('file', file)
+
+  xhr.open('POST', url, true)
+
+  xhr.send(form)
+
+  xhr.onload = function(e) {
+    let res = JSON.parse(e.target.response)
+    load(null, res.msg.url)
+  }
+}
+
+export const iframeUpload = function(url, { change, load }) {
   let target = 'upload'
   let input
 
@@ -27,6 +62,7 @@ export const iframeUpload = function(file, { url }) {
       })
     ],
     {
+      style: 'display:none',
       action: url,
       enctype: 'multipart/form-data',
       target,
@@ -40,15 +76,42 @@ export const iframeUpload = function(file, { url }) {
     style: 'display:none'
   })
 
-  iframe.onload = function(e) {
-    var _result = JSON.parse(
-      this.contentDocument.getElementsByTagName('body')[0].innerHTML
-    )
-  }
   document.body.appendChild(iframe)
-
   document.body.appendChild(form)
 
-  input.value = file
-  form.submit()
+  iframe.onload = function(event) {
+    let err, result
+    try {
+      debugger
+      console.log(
+        document
+          .getElementById('upload')
+          .contentWindow.document.getElementsByTagName('body')
+      )
+      result = document
+        .getElementById('upload')
+        .contentWindow.document.getElementsByTagName('body')
+    } catch (e) {
+      err = e
+    }
+
+    load(err, result)
+  }
+
+  input.onchange = function(e) {
+    change(e)
+  }
+
+  return {
+    select() {
+      input.click()
+    },
+    upload() {
+      form.submit()
+    },
+    destory() {
+      document.body.removeChild(iframe)
+      document.body.removeChild(form)
+    }
+  }
 }

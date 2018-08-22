@@ -1,5 +1,6 @@
 .c-editor-content {
-  height: 280px;
+  height: 500px;
+  overflow: hidden;
   border: 1px solid #ccc;
 }
 
@@ -12,21 +13,29 @@
   color: rgb(100, 100, 100);
 }
 
-.c-edit-draop-modal-view {
+.c-editor-hide {
+  display: none;
+}
+
+.c-editor-show {
+  display: block;
+}
+
+.c-edit-drop-modal-view {
   position: absolute;
   border: 1px solid black;
 }
 
-.c-edit-draop-modal-view ul {
+.c-edit-drop-modal-view ul {
   margin: 0;
   padding: 0;
 }
 
-.c-edit-draop-modal-view li {
+.c-edit-drop-modal-view li {
   list-style: none;
 }
 
-.c-edit-draop-hide {
+.c-edit-drop-hide {
   display: none;
 }
 
@@ -35,8 +44,7 @@
 }
 
 .c-zoom-in-top-enter-active,
-.c-zoom-in-top-leave-active {
-  opacity: 1;
+.c-zoom-in-top-leave {
   transform: scaleY(1);
   transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
     opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1);
