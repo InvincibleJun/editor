@@ -1,11 +1,26 @@
 .c-editor-content {
-  height: 500px;
+  padding: 10px;
   overflow: hidden;
-  border: 1px solid #ccc;
+  overflow-y: scroll;
+  border: none;
+  outline: none;
+  height: 400px;
+  box-sizing: border-box;
+}
+
+.c-editor-content:focus,
+.c-editor-content:hover {
+  border: none;
+  outline: none;
 }
 
 .c-editor-toolbar-wrapper {
   background-color: rgb(240, 240, 240);
+  border: 1px solid #ccc;
+}
+
+.c-editor-content-wrapper {
+  height: 400px;
   border: 1px solid #ccc;
 }
 
@@ -156,4 +171,8 @@
   border: 1px solid #ccc;
 }
 .c-editor-input {
+}
+.c-editor-image-uploading::after {
+  background: #ccc;
+  content: '23123';
 }

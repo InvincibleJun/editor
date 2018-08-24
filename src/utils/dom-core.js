@@ -6,7 +6,7 @@ import { noop } from './funcs'
  * @param {*} parent 父元素 [htmlelement]
  * @param {*} isArray 是否复数 [boolean]
  */
-export const find = function(selector, parent, isArray) {
+export const findEl = function(selector, parent, isArray) {
   // 参数修正
   if (arguments.length === 2 && typeof arguments[1] === 'boolean') {
     isArray = parent

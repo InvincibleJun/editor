@@ -1,4 +1,4 @@
-import { find, setAttr, addEvent, focusEle } from './utils/dom-core'
+import { findEl, setAttr, addEvent, focusEle } from './utils/dom-core'
 import config from './config/tools'
 import colorSelector from './components/color-selector'
 import fontSizeSelector from './components/fontSize-selector'
@@ -6,6 +6,7 @@ import fontSizeSelector from './components/fontSize-selector'
 
 import Media from './components/media/index'
 // import Video from './components/video/index'
+import Paste from './events/paste'
 
 class Editor {
   constructor(selector, options) {
@@ -16,17 +17,32 @@ class Editor {
   }
 
   init() {
-    this.selection = getSelection()
+    // 选区对象
+    this.selection = window.getSelection()
     // 焦点位置
     this.range = false
-    this.container = find(this.selector)
+
+    this.container = findEl(this.selector)
+
     this.editor = document.createElement('div')
     this.editor.classList.add('c-editor-content')
 
+    this.editorWrapper = document.createElement('div')
+    this.editorWrapper.classList.add('c-editor-content-wrapper')
+    this.editorWrapper.appendChild(this.editor)
+    this.container.appendChild(this.editorWrapper)
+
     addEvent(this.editor, 'blur', () => this.blur())
     addEvent(this.editor, 'focus', () => this.focus())
+    // addEvent(this.editor, 'paste', e => this.paste(e))
+
+    new Paste(this)
+
     setAttr(this.editor, 'contenteditable', true)
-    this.container.appendChild(this.editor)
+  }
+
+  find(selector, parent) {
+    return findEl(selector, this.editor)
   }
 
   toolsInit() {
@@ -39,7 +55,7 @@ class Editor {
       let i = this.createIcon(icon, cmd, params, name)
       toolbar.appendChild(i)
     })
-    this.container.insertBefore(toolbar, this.editor)
+    this.container.insertBefore(toolbar, this.editorWrapper)
   }
 
   focus(e) {

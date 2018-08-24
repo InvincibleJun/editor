@@ -36,7 +36,7 @@ export const formDataUpload = function(url, { change, load }) {
   }
 }
 
-export const uploadAjax = function(url, file, { load }) {
+export const uploadAjax = function(url, file, { load = () => {} }) {
   let xhr = new XMLHttpRequest()
 
   let form = new FormData()

@@ -1,7 +1,7 @@
 import dropModal from '../drop-modal'
 import r from '../../utils/render'
 import { iframeUpload, formDataUpload, uploadAjax } from '../upload'
-import { find, setAttr, addEvent, focusEle } from '../../utils/dom-core'
+import { findEl, setAttr, addEvent, focusEle } from '../../utils/dom-core'
 
 const defaultOptions = {
   action: '',

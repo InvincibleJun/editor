@@ -33,7 +33,7 @@
    * @param {*} parent 父元素 [htmlelement]
    * @param {*} isArray 是否复数 [boolean]
    */
-  var find = function find(selector, parent, isArray$$1) {
+  var findEl = function findEl(selector, parent, isArray$$1) {
     // 参数修正
     if (arguments.length === 2 && typeof arguments[1] === 'boolean') {
       isArray$$1 = parent;
@@ -682,7 +682,8 @@
   };
 
   var uploadAjax = function uploadAjax(url, file, _ref2) {
-    var load = _ref2.load;
+    var _ref2$load = _ref2.load,
+        load = _ref2$load === undefined ? function () {} : _ref2$load;
 
     var xhr = new XMLHttpRequest();
 
@@ -874,7 +875,84 @@
     return Media;
   }();
 
-  // import Video from './components/video/index'
+  // import craeteUuid from '../utils/uuid'
+  var uuid$1 = 0;
+
+  var Paste = function () {
+    function Paste(editor) {
+      classCallCheck(this, Paste);
+
+      this.ed = editor;
+      // this.exec = exec
+      this.init();
+    }
+
+    createClass(Paste, [{
+      key: 'init',
+      value: function init() {
+        var _this = this;
+
+        addEvent(this.ed.editor, 'paste', function (e) {
+          return _this.entry(e);
+        });
+      }
+    }, {
+      key: 'entry',
+      value: function entry(e) {
+        var _this2 = this;
+
+        e.preventDefault();
+        var clipboardData = event.clipboardData || window.clipboardData;
+        var items = clipboardData.items;
+
+        if (clipboardData && items) {
+          Object.keys(items).forEach(function (key) {
+            // debugger
+
+            var item = items[key];
+            var kind = item.kind,
+                type = item.type;
+
+            if (kind === 'file') {
+              var id = uuid$1++;
+              var file = item.getAsFile();
+              uploadAjax('http://imgtest.357.com/upload/adminpic', file, {
+                load: function load(e, url) {
+                  if (!e) {
+                    setAttr(_this2.ed.find('.image-upload-' + id), 'src', url);
+                    setAttr(_this2.ed.find('.image-upload-' + id), 'class', '');
+                  }
+                }
+              });
+
+              var r = new FileReader();
+              r.readAsDataURL(file);
+              r.onload = function (e) {
+                var base64 = e.target.result;
+                _this2.ed.exec('insertHTML', '<div><img src=' + base64 + ' class="image-upload-' + id + '" style="max-width:100%" /></div>');
+              };
+            } else if (type === 'text/html') {
+              var _uuid = 1;
+
+              item.getAsString(function (s) {
+                s = s.replace(/<(div|p|img|a|span)([^>]+)>/gi, function (word, $1, $2) {
+                  if ($1 === 'img') {
+                    // 外链图片处理
+                    var match = word.match(/<img[^>]+src=['"]([^>\s"']+)[^>]+>/i);
+                    return match && match[1] ? '<img class="' + _uuid + '" width="100" height="100" src="' + match[1] + '">' : word;
+                  }
+                  return word.replace($2, '');
+                }).replace(/<!--(StartFragment|EndFragment)-->/, '');
+
+                _this2.ed.exec('insertHTML', s);
+              });
+            }
+          });
+        }
+      }
+    }]);
+    return Paste;
+  }();
 
   var Editor = function () {
     function Editor(selector, options) {
@@ -891,12 +969,20 @@
       value: function init() {
         var _this = this;
 
-        this.selection = getSelection();
+        // 选区对象
+        this.selection = window.getSelection();
         // 焦点位置
         this.range = false;
-        this.container = find(this.selector);
+
+        this.container = findEl(this.selector);
+
         this.editor = document.createElement('div');
         this.editor.classList.add('c-editor-content');
+
+        this.editorWrapper = document.createElement('div');
+        this.editorWrapper.classList.add('c-editor-content-wrapper');
+        this.editorWrapper.appendChild(this.editor);
+        this.container.appendChild(this.editorWrapper);
 
         addEvent(this.editor, 'blur', function () {
           return _this.blur();
@@ -904,8 +990,16 @@
         addEvent(this.editor, 'focus', function () {
           return _this.focus();
         });
+        // addEvent(this.editor, 'paste', e => this.paste(e))
+
+        new Paste(this);
+
         setAttr(this.editor, 'contenteditable', true);
-        this.container.appendChild(this.editor);
+      }
+    }, {
+      key: 'find',
+      value: function find(selector, parent) {
+        return findEl(selector, this.editor);
       }
     }, {
       key: 'toolsInit',
@@ -925,7 +1019,7 @@
           var i = _this2.createIcon(icon, cmd, params, name);
           toolbar.appendChild(i);
         });
-        this.container.insertBefore(toolbar, this.editor);
+        this.container.insertBefore(toolbar, this.editorWrapper);
       }
     }, {
       key: 'focus',
