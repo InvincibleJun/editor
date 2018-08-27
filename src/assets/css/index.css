@@ -8,6 +8,11 @@
   box-sizing: border-box;
 }
 
+.c-editor-content p {
+  margin: 0;
+  padding: 0;
+}
+
 .c-editor-content:focus,
 .c-editor-content:hover {
   border: none;
@@ -55,7 +60,7 @@
 }
 
 .c-edit-icon-active {
-  background-color: rgb(240, 240, 240);
+  background-color: red;
 }
 
 .c-zoom-in-top-enter-active,

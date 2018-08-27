@@ -65,14 +65,6 @@
     };
   };
 
-  /**
-   * 返回当前焦点dom
-   * @return {HTMLElement} 焦点对象
-   */
-  var focusEle = function focusEle() {
-    return document.activeElement;
-  };
-
   var config = [{
     icon: 'icon-bold',
     cmd: 'bold'
@@ -961,6 +953,7 @@
       this.selector = selector;
       this.options = options;
       this.init();
+      this._range = null;
       this.toolsInit();
     }
 
@@ -972,7 +965,7 @@
         // 选区对象
         this.selection = window.getSelection();
         // 焦点位置
-        this.range = false;
+        this._range = null;
 
         this.container = findEl(this.selector);
 
@@ -990,11 +983,39 @@
         addEvent(this.editor, 'focus', function () {
           return _this.focus();
         });
+        addEvent(this.editor, 'keydown', function (e) {
+          return _this.keydown(e);
+        });
         // addEvent(this.editor, 'paste', e => this.paste(e))
 
         new Paste(this);
 
         setAttr(this.editor, 'contenteditable', true);
+
+        this.create();
+      }
+    }, {
+      key: 'keydown',
+      value: function keydown(e) {
+        if (e.keyCode === 8) {
+          // 保持第一行空白
+          if (this.editor.innerHTML === '<p><br></p>') {
+            e.preventDefault();
+          }
+        } else if (e.keyCode === 13) ;
+      }
+    }, {
+      key: 'create',
+      value: function create() {
+        this.editor.innerHTML = '<p><br /></p>';
+        var last = this.editor.childNodes[0];
+        var _range = document.createRange();
+        _range.selectNodeContents(last);
+        _range.collapse(false);
+
+        this.saveRange(_range);
+
+        this.restoreSelection();
       }
     }, {
       key: 'find',
@@ -1023,14 +1044,51 @@
       }
     }, {
       key: 'focus',
-      value: function focus(e) {
-        // if (focusEle() !== this.editor) {
-        // }
+      value: function focus(e) {}
+
+      // 保存光标位置
+
+    }, {
+      key: 'saveRange',
+      value: function saveRange(_range) {
+        if (_range) {
+          this._range = _range;
+          return;
+        }
+
+        this._range = this.selection.rangeCount ? this.selection.getRangeAt(0) : null;
+      }
+
+      // 选区是否为空
+
+    }, {
+      key: 'isSelectionEmpty',
+      value: function isSelectionEmpty() {
+        var range = this._range;
+        if (range && range.startContainer) {
+          if (range.startContainer === range.endContainer) {
+            if (range.startOffset === range.endOffset) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      // 恢复选区
+
+    }, {
+      key: 'restoreSelection',
+      value: function restoreSelection() {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(this._range);
       }
     }, {
       key: 'blur',
       value: function blur(e) {
-        this.range = this.selection.rangeCount ? this.selection.getRangeAt(0) : false;
+        // this.saveRange()
+        // 失焦时保存当前range对象
       }
     }, {
       key: 'createIcon',
@@ -1055,8 +1113,23 @@
             fontSizeSelector(i, exec, cmd);
           } else {
             addEvent(i, 'click', function (e) {
-              // this.selection.createEmptyRange()
-              _this3.toolCickHandler(e, cmd, params);
+              var isSelectionEmpty = _this3.isSelectionEmpty();
+              if (isSelectionEmpty) {
+                _this3.exec('insertHTML', '&#8203;');
+                _this3._range.setEnd(_this3._range.endContainer, _this3._range.endOffset + 1);
+
+                _this3.saveRange(_this3._range);
+              }
+
+              // this.toolCickHandler(e, cmd, params)
+
+              // if (isSelectionEmpty) {
+              //   // 需要将选取折叠起来
+              //   // this.selection.collapseRange()
+              //   this._range.collapse(false)
+              //   this.restoreSelection()
+              // }
+
               var status = _this3.status(cmd);
               i.classList[status ? 'add' : 'remove']('c-edit-icon-active');
             });
@@ -1073,22 +1146,16 @@
     }, {
       key: 'status',
       value: function status(name) {
-        console.log(document.queryCommandState(name));
         return document.queryCommandState(name);
       }
     }, {
       key: 'exec',
       value: function exec(cmd, params) {
-        if (focusEle() !== this.Editor) {
-          if (this.range) {
-            this.selection.removeAllRanges();
-            this.selection.addRange(this.range);
-            this.range = false;
-          }
-          this.editor.focus();
-        }
+        this.restoreSelection();
 
         document.execCommand(cmd, false, params);
+        this.selection();
+        this.restoreSelection();
       }
     }]);
     return Editor;

@@ -13,6 +13,7 @@ class Editor {
     this.selector = selector
     this.options = options
     this.init()
+    this._range = null
     this.toolsInit()
   }
 
@@ -20,7 +21,7 @@ class Editor {
     // 选区对象
     this.selection = window.getSelection()
     // 焦点位置
-    this.range = false
+    this._range = null
 
     this.container = findEl(this.selector)
 
@@ -34,11 +35,36 @@ class Editor {
 
     addEvent(this.editor, 'blur', () => this.blur())
     addEvent(this.editor, 'focus', () => this.focus())
+    addEvent(this.editor, 'keydown', e => this.keydown(e))
     // addEvent(this.editor, 'paste', e => this.paste(e))
 
     new Paste(this)
 
     setAttr(this.editor, 'contenteditable', true)
+
+    this.create()
+  }
+
+  keydown(e) {
+    if (e.keyCode === 8) {
+      // 保持第一行空白
+      if (this.editor.innerHTML === '<p><br></p>') {
+        e.preventDefault()
+      }
+    } else if (e.keyCode === 13) {
+    }
+  }
+
+  create() {
+    this.editor.innerHTML = '<p><br /></p>'
+    let last = this.editor.childNodes[0]
+    let _range = document.createRange()
+    _range.selectNodeContents(last)
+    _range.collapse(false)
+
+    this.saveRange(_range)
+
+    this.restoreSelection()
   }
 
   find(selector, parent) {
@@ -58,15 +84,43 @@ class Editor {
     this.container.insertBefore(toolbar, this.editorWrapper)
   }
 
-  focus(e) {
-    // if (focusEle() !== this.editor) {
-    // }
+  focus(e) {}
+
+  // 保存光标位置
+  saveRange(_range) {
+    if (_range) {
+      this._range = _range
+      return
+    }
+
+    this._range = this.selection.rangeCount
+      ? this.selection.getRangeAt(0)
+      : null
+  }
+
+  // 选区是否为空
+  isSelectionEmpty() {
+    const range = this._range
+    if (range && range.startContainer) {
+      if (range.startContainer === range.endContainer) {
+        if (range.startOffset === range.endOffset) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  // 恢复选区
+  restoreSelection() {
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(this._range)
   }
 
   blur(e) {
-    this.range = this.selection.rangeCount
-      ? this.selection.getRangeAt(0)
-      : false
+    // this.saveRange()
+    // 失焦时保存当前range对象
   }
 
   createIcon(icon, cmd, params, name) {
@@ -88,8 +142,26 @@ class Editor {
         fontSizeSelector(i, exec, cmd)
       } else {
         addEvent(i, 'click', e => {
-          // this.selection.createEmptyRange()
-          this.toolCickHandler(e, cmd, params)
+          let isSelectionEmpty = this.isSelectionEmpty()
+          if (isSelectionEmpty) {
+            this.exec('insertHTML', '&#8203;')
+            this._range.setEnd(
+              this._range.endContainer,
+              this._range.endOffset + 1
+            )
+
+            this.saveRange(this._range)
+          }
+
+          // this.toolCickHandler(e, cmd, params)
+
+          // if (isSelectionEmpty) {
+          //   // 需要将选取折叠起来
+          //   // this.selection.collapseRange()
+          //   this._range.collapse(false)
+          //   this.restoreSelection()
+          // }
+
           let status = this.status(cmd)
           i.classList[status ? 'add' : 'remove']('c-edit-icon-active')
         })
@@ -104,21 +176,15 @@ class Editor {
   }
 
   status(name) {
-    console.log(document.queryCommandState(name))
     return document.queryCommandState(name)
   }
 
   exec(cmd, params) {
-    if (focusEle() !== this.Editor) {
-      if (this.range) {
-        this.selection.removeAllRanges()
-        this.selection.addRange(this.range)
-        this.range = false
-      }
-      this.editor.focus()
-    }
+    this.restoreSelection()
 
     document.execCommand(cmd, false, params)
+    this.selection()
+    this.restoreSelection()
   }
 }
 
