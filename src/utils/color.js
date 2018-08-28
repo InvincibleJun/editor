@@ -167,7 +167,6 @@ export default class Color {
   }
 
   setHsvAndAlpha(r, g, b, a) {
-    // debugger
     if (this._showAlpha && a) {
       this.set('alpha', (a * 100).toFixed(0))
     }

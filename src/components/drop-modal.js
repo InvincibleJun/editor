@@ -27,8 +27,6 @@ export default (el, child, events) => {
   let active = false
 
   let unbind = addEvent(el, 'click', function(e) {
-    debugger
-    // e.stopPropagation()
     let { left, top, height } = el.getBoundingClientRect()
     wrapper.style.left = left + 'px'
     wrapper.style.top = top + height + 'px'

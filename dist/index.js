@@ -24,7 +24,19 @@
    * 判断是否是数组
    */
   var isArray = function isArray(arr) {
-    return arr && toString.call(arr) === '[object Object]';
+    return arr && toString.call(arr) === '[object Array]';
+  };
+
+  /**
+   * 对象遍历
+   * @param {object} obj 源
+   * @param {function} fn 遍历器
+   */
+  var forEach = function forEach(obj, fn) {
+    if (!isPlainObject(obj)) return;
+    Object.keys(obj).forEach(function (key) {
+      return fn(obj[key], key, obj);
+    });
   };
 
   /**
@@ -65,60 +77,32 @@
     };
   };
 
-  var config = [{
-    icon: 'icon-bold',
-    cmd: 'bold'
-  }, {
-    icon: 'icon-italic',
-    cmd: 'italic'
-  }, {
-    icon: 'icon-text-left',
-    cmd: 'justifyLeft'
-  }, {
-    icon: 'icon-text-center',
-    cmd: 'justifyCenter'
-  }, {
-    icon: 'icon-text-right',
-    cmd: 'justifyRight'
-  },
-  // 下划线
-  {
-    icon: 'icon-underline',
-    cmd: 'underline'
-  },
-
-  // heading 目前只有firefox兼容, 统一采用formatBlock
-  {
-    icon: 'icon-heading-1',
-    cmd: 'formatBlock',
-    params: 'h1'
-  }, {
-    icon: 'icon-h1',
-    cmd: 'foreColor',
-    // openModal: true,
-    params: 'red'
-  }, {
-    icon: 'icon-wenzi',
-    cmd: 'fontSize'
-  }, {
-    name: 'image',
-    icon: 'icon-image'
-    // cmd:
-  }, {
-    name: 'video',
-    icon: 'icon-shipin'
-    // //在插入点或者选中文字上创建一个有序列表
-    // {
-    //   icon: 'icon-h1',
-    //   cmd: 'insertOrderedList'
-    // },
-
-    // //在插入点或者选中文字上创建一个无序列表
-    // {
-    //   icon: 'icon-h1',
-    //   cmd: 'insertOrderedList'
-    // }
-  }];
+  var config = {
+    tools: {
+      bold: 'iconfont icon-bold',
+      italic: 'iconfont icon-italic',
+      justifyLeft: 'iconfont icon-text-left',
+      justifyCenter: 'iconfont icon-text-center',
+      justifyRight: 'iconfont icon-text-right',
+      underline: 'iconfont icon-underline',
+      foreColor: 'iconfont icon-h1',
+      fontSize: 'iconfont icon-wenzi',
+      image: 'iconfont icon-image',
+      video: 'iconfont icon-shipin'
+    },
+    options: {
+      image: {
+        // 图片单行显示
+        singleLine: true,
+        uploadUrl: true,
+        // 上传路径
+        action: 'http://imgtest.357.com/upload/adminpic'
+      },
+      video: {
+        action: 'http://imgtest.357.com/upload/adminvideo'
+      }
+    }
+  };
 
   var animation = function animation(el, option, events, timeout) {
     var _events$start = events.start,
@@ -135,7 +119,7 @@
 
     enter && el.classList.add(enter);
     to && el.classList.add(to);
-    // debugger
+
     setTimeout(function () {
       el.classList.add(active);
       enter && el.classList.remove(enter);
@@ -169,9 +153,6 @@
     var wrapper = createWrapper(child);
 
     var unbind = addEvent(el, 'click', function (e) {
-      debugger;
-      // e.stopPropagation()
-
       var _el$getBoundingClient = el.getBoundingClientRect(),
           left = _el$getBoundingClient.left,
           top = _el$getBoundingClient.top,
@@ -434,7 +415,6 @@
     }, {
       key: 'setHsvAndAlpha',
       value: function setHsvAndAlpha(r, g, b, a) {
-        // debugger
         if (this._showAlpha && a) {
           this.set('alpha', (a * 100).toFixed(0));
         }
@@ -899,8 +879,6 @@
 
         if (clipboardData && items) {
           Object.keys(items).forEach(function (key) {
-            // debugger
-
             var item = items[key];
             var kind = item.kind,
                 type = item.type;
@@ -946,27 +924,149 @@
     return Paste;
   }();
 
+  var Selection = function () {
+    function Selection(editor) {
+      classCallCheck(this, Selection);
+
+      this.Ed = editor;
+      this._range = null;
+    }
+
+    createClass(Selection, [{
+      key: 'getRange',
+      value: function getRange() {
+        return this._range;
+      }
+
+      // 保存光标位置
+
+    }, {
+      key: 'saveRange',
+      value: function saveRange(_range) {
+        console.log('save');
+        if (_range) {
+          this._range = _range;
+          return;
+        }
+
+        var selection = window.getSelection();
+
+        if (selection.rangeCount === 0) return;
+
+        // selection可包含多个range对象，一般而言取第一个
+        this._range = selection.getRangeAt(0);
+        console.log(this._range);
+      }
+
+      // 恢复选区
+
+    }, {
+      key: 'restoreSelection',
+      value: function restoreSelection() {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(this._range);
+      }
+
+      // 选区是否为空
+
+    }, {
+      key: 'isEmpty',
+      value: function isEmpty() {
+        var _range = this._range;
+
+        return _range && _range.startContainer === _range.endContainer && _range.startOffset === _range.endOffset;
+      }
+    }, {
+      key: 'createEmpty',
+      value: function createEmpty() {
+        // if (!range) return
+        var range = this.getRange();
+
+        try {
+          this.Ed.exec('insertHTML', '&#8203;');
+          range.setEnd(range.endContainer, range.endOffset + 1);
+          this.saveRange(range);
+          //
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      // 折叠选区
+      /**
+       * @parmas [boolean]
+       **/
+
+    }, {
+      key: 'collapseRange',
+      value: function collapseRange() {
+        var toStart = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+        this._range && this._range.collapse(toStart);
+      }
+    }]);
+    return Selection;
+  }();
+
   var Editor = function () {
-    function Editor(selector, options) {
+    function Editor(selector, config$$1) {
       classCallCheck(this, Editor);
 
       this.selector = selector;
-      this.options = options;
+      this.customerConfig = config$$1;
       this.init();
-      this._range = null;
-      this.toolsInit();
     }
 
     createClass(Editor, [{
       key: 'init',
       value: function init() {
-        var _this = this;
+        this.configInit();
+        // dom元素初始化
+        this.domInit();
 
+        // 工具栏初始化
+        this.toolsInit();
+
+        // selection对象初始化
+        this.selectionInit();
+
+        // 事件初始化
+        this.eventInit();
         // 选区对象
-        this.selection = window.getSelection();
-        // 焦点位置
-        this._range = null;
 
+        // 焦点位置
+
+        new Paste(this);
+
+        this.create();
+      }
+    }, {
+      key: 'configInit',
+      value: function configInit() {
+        var _customerConfig = this.customerConfig,
+            tools = _customerConfig.tools,
+            options = _customerConfig.options;
+
+        // can render icons array
+
+        this.supporNames = Object.keys(config.tools);
+
+        // tools = default or is not an array, use config's tools options
+        if (tools && tools === 'default' || !isPlainObject(tools)) {
+          tools = config.tools;
+        }
+
+        this.config = Object.assign({}, this.customerConfig, config);
+      }
+    }, {
+      key: 'selectionInit',
+      value: function selectionInit() {
+        this.selection = new Selection(this);
+      }
+    }, {
+      key: 'domInit',
+      value: function domInit() {
         this.container = findEl(this.selector);
 
         this.editor = document.createElement('div');
@@ -977,6 +1077,13 @@
         this.editorWrapper.appendChild(this.editor);
         this.container.appendChild(this.editorWrapper);
 
+        setAttr(this.editor, 'contenteditable', true);
+      }
+    }, {
+      key: 'eventInit',
+      value: function eventInit() {
+        var _this = this;
+
         addEvent(this.editor, 'blur', function () {
           return _this.blur();
         });
@@ -986,13 +1093,17 @@
         addEvent(this.editor, 'keydown', function (e) {
           return _this.keydown(e);
         });
-        // addEvent(this.editor, 'paste', e => this.paste(e))
-
-        new Paste(this);
-
-        setAttr(this.editor, 'contenteditable', true);
-
-        this.create();
+        addEvent(this.editor, 'paste', function (e) {
+          return _this.paste(e);
+        });
+        addEvent(this.editor, 'keyup', function (e) {
+          return _this.keyup(e);
+        });
+      }
+    }, {
+      key: 'keyup',
+      value: function keyup(e) {
+        this.selection.saveRange();
       }
     }, {
       key: 'keydown',
@@ -1007,15 +1118,15 @@
     }, {
       key: 'create',
       value: function create() {
-        this.editor.innerHTML = '<p><br /></p>';
-        var last = this.editor.childNodes[0];
+        this.editor.innerHTML = '<p><br></p>';
+        var last = this.editor.children[0];
+        // 创建选区
         var _range = document.createRange();
         _range.selectNodeContents(last);
+        // 折叠选区
         _range.collapse(false);
-
-        this.saveRange(_range);
-
-        this.restoreSelection();
+        this.selection.saveRange(_range);
+        this.selection.restoreSelection();
       }
     }, {
       key: 'find',
@@ -1027,63 +1138,28 @@
       value: function toolsInit() {
         var _this2 = this;
 
+        var tools = this.config.tools;
+
         var toolbar = document.createElement('div');
 
         toolbar.classList.add('c-editor-toolbar-wrapper');
 
-        config.forEach(function (val, key) {
-          var icon = val.icon,
-              cmd = val.cmd,
-              params = val.params,
-              name = val.name;
+        forEach(tools, function (val, key) {
+          if (!_this2.supporNames.includes(key)) return;
+          var i = document.createElement('i');
 
-          var i = _this2.createIcon(icon, cmd, params, name);
+          if (key && typeof key === 'string') {
+            i.classList.add(val);
+          }
+
           toolbar.appendChild(i);
         });
+
         this.container.insertBefore(toolbar, this.editorWrapper);
       }
     }, {
       key: 'focus',
       value: function focus(e) {}
-
-      // 保存光标位置
-
-    }, {
-      key: 'saveRange',
-      value: function saveRange(_range) {
-        if (_range) {
-          this._range = _range;
-          return;
-        }
-
-        this._range = this.selection.rangeCount ? this.selection.getRangeAt(0) : null;
-      }
-
-      // 选区是否为空
-
-    }, {
-      key: 'isSelectionEmpty',
-      value: function isSelectionEmpty() {
-        var range = this._range;
-        if (range && range.startContainer) {
-          if (range.startContainer === range.endContainer) {
-            if (range.startOffset === range.endOffset) {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-
-      // 恢复选区
-
-    }, {
-      key: 'restoreSelection',
-      value: function restoreSelection() {
-        var selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(this._range);
-      }
     }, {
       key: 'blur',
       value: function blur(e) {
@@ -1111,24 +1187,20 @@
             colorSelector(i, cmd, params);
           } else if (cmd === 'fontSize') {
             fontSizeSelector(i, exec, cmd);
-          } else {
+          } else if (cmd === 'bold') {
             addEvent(i, 'click', function (e) {
-              var isSelectionEmpty = _this3.isSelectionEmpty();
-              if (isSelectionEmpty) {
-                _this3.exec('insertHTML', '&#8203;');
-                _this3._range.setEnd(_this3._range.endContainer, _this3._range.endOffset + 1);
-
-                _this3.saveRange(_this3._range);
+              var isEmpty = _this3.selection.isEmpty();
+              if (isEmpty) {
+                _this3.selection.createEmpty();
               }
 
-              // this.toolCickHandler(e, cmd, params)
+              _this3.exec('bold', params);
 
-              // if (isSelectionEmpty) {
-              //   // 需要将选取折叠起来
-              //   // this.selection.collapseRange()
-              //   this._range.collapse(false)
-              //   this.restoreSelection()
-              // }
+              if (isEmpty) {
+                // 需要将选取折叠起来
+                _this3.selection.collapseRange();
+                _this3.selection.restoreSelection();
+              }
 
               var status = _this3.status(cmd);
               i.classList[status ? 'add' : 'remove']('c-edit-icon-active');
@@ -1151,11 +1223,16 @@
     }, {
       key: 'exec',
       value: function exec(cmd, params) {
-        this.restoreSelection();
+        this.selection.restoreSelection();
+        if (cmd === 'bold') {
+          document.execCommand('bold', false);
+        } else {
+          document.execCommand(cmd, false, params);
+        }
 
-        document.execCommand(cmd, false, params);
-        this.selection();
-        this.restoreSelection();
+        this.selection.saveRange();
+
+        this.selection.restoreSelection();
       }
     }]);
     return Editor;

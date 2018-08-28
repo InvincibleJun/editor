@@ -87,7 +87,6 @@ export const iframeUpload = function(url, { change, load }) {
   iframe.onload = function(event) {
     let err, result
     try {
-      debugger
       console.log(
         document
           .getElementById('upload')

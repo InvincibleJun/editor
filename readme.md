@@ -4,6 +4,13 @@
 
 ### heading 只有 firefox 支持
 
+#### range
+
+> setEnd
+> The Range.setEnd() method sets the end position of a Range.
+
+设置结束位置
+
 #### image
 
 > singleLine

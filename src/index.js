@@ -2,27 +2,64 @@ import { findEl, setAttr, addEvent, focusEle } from './utils/dom-core'
 import config from './config/tools'
 import colorSelector from './components/color-selector'
 import fontSizeSelector from './components/fontSize-selector'
+
+import { isArray, isPlainObject, forEach } from './utils/funcs'
 // import createModal from './components/modal'
 
 import Media from './components/media/index'
 // import Video from './components/video/index'
 import Paste from './events/paste'
 
+import Selection from './selection/range'
+
 class Editor {
-  constructor(selector, options) {
+  constructor(selector, config) {
     this.selector = selector
-    this.options = options
+    this.customerConfig = config
     this.init()
-    this._range = null
-    this.toolsInit()
   }
 
   init() {
-    // 选区对象
-    this.selection = window.getSelection()
-    // 焦点位置
-    this._range = null
+    this.configInit()
+    // dom元素初始化
+    this.domInit()
 
+    // 工具栏初始化
+    this.toolsInit()
+
+    // selection对象初始化
+    this.selectionInit()
+
+    // 事件初始化
+    this.eventInit()
+    // 选区对象
+
+    // 焦点位置
+
+    new Paste(this)
+
+    this.create()
+  }
+
+  configInit() {
+    let { tools, options } = this.customerConfig
+
+    // can render icons array
+    this.supporNames = Object.keys(config.tools)
+
+    // tools = default or is not an array, use config's tools options
+    if ((tools && tools === 'default') || !isPlainObject(tools)) {
+      tools = config.tools
+    }
+
+    this.config = Object.assign({}, this.customerConfig, config)
+  }
+
+  selectionInit() {
+    this.selection = new Selection(this)
+  }
+
+  domInit() {
     this.container = findEl(this.selector)
 
     this.editor = document.createElement('div')
@@ -33,16 +70,19 @@ class Editor {
     this.editorWrapper.appendChild(this.editor)
     this.container.appendChild(this.editorWrapper)
 
+    setAttr(this.editor, 'contenteditable', true)
+  }
+
+  eventInit() {
     addEvent(this.editor, 'blur', () => this.blur())
     addEvent(this.editor, 'focus', () => this.focus())
     addEvent(this.editor, 'keydown', e => this.keydown(e))
-    // addEvent(this.editor, 'paste', e => this.paste(e))
+    addEvent(this.editor, 'paste', e => this.paste(e))
+    addEvent(this.editor, 'keyup', e => this.keyup(e))
+  }
 
-    new Paste(this)
-
-    setAttr(this.editor, 'contenteditable', true)
-
-    this.create()
+  keyup(e) {
+    this.selection.saveRange()
   }
 
   keydown(e) {
@@ -56,15 +96,15 @@ class Editor {
   }
 
   create() {
-    this.editor.innerHTML = '<p><br /></p>'
-    let last = this.editor.childNodes[0]
+    this.editor.innerHTML = '<p><br></p>'
+    let last = this.editor.children[0]
+    // 创建选区
     let _range = document.createRange()
     _range.selectNodeContents(last)
+    // 折叠选区
     _range.collapse(false)
-
-    this.saveRange(_range)
-
-    this.restoreSelection()
+    this.selection.saveRange(_range)
+    this.selection.restoreSelection()
   }
 
   find(selector, parent) {
@@ -72,51 +112,26 @@ class Editor {
   }
 
   toolsInit() {
+    const { tools } = this.config
     var toolbar = document.createElement('div')
 
     toolbar.classList.add('c-editor-toolbar-wrapper')
 
-    config.forEach((val, key) => {
-      const { icon, cmd, params, name } = val
-      let i = this.createIcon(icon, cmd, params, name)
+    forEach(tools, (val, key) => {
+      if (!this.supporNames.includes(key)) return
+      let i = document.createElement('i')
+
+      if (key && typeof key === 'string') {
+        i.classList.add(val)
+      }
+
       toolbar.appendChild(i)
     })
+
     this.container.insertBefore(toolbar, this.editorWrapper)
   }
 
   focus(e) {}
-
-  // 保存光标位置
-  saveRange(_range) {
-    if (_range) {
-      this._range = _range
-      return
-    }
-
-    this._range = this.selection.rangeCount
-      ? this.selection.getRangeAt(0)
-      : null
-  }
-
-  // 选区是否为空
-  isSelectionEmpty() {
-    const range = this._range
-    if (range && range.startContainer) {
-      if (range.startContainer === range.endContainer) {
-        if (range.startOffset === range.endOffset) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-  // 恢复选区
-  restoreSelection() {
-    const selection = window.getSelection()
-    selection.removeAllRanges()
-    selection.addRange(this._range)
-  }
 
   blur(e) {
     // this.saveRange()
@@ -140,27 +155,20 @@ class Editor {
         colorSelector(i, cmd, params)
       } else if (cmd === 'fontSize') {
         fontSizeSelector(i, exec, cmd)
-      } else {
+      } else if (cmd === 'bold') {
         addEvent(i, 'click', e => {
-          let isSelectionEmpty = this.isSelectionEmpty()
-          if (isSelectionEmpty) {
-            this.exec('insertHTML', '&#8203;')
-            this._range.setEnd(
-              this._range.endContainer,
-              this._range.endOffset + 1
-            )
-
-            this.saveRange(this._range)
+          let isEmpty = this.selection.isEmpty()
+          if (isEmpty) {
+            this.selection.createEmpty()
           }
 
-          // this.toolCickHandler(e, cmd, params)
+          this.exec('bold', params)
 
-          // if (isSelectionEmpty) {
-          //   // 需要将选取折叠起来
-          //   // this.selection.collapseRange()
-          //   this._range.collapse(false)
-          //   this.restoreSelection()
-          // }
+          if (isEmpty) {
+            // 需要将选取折叠起来
+            this.selection.collapseRange()
+            this.selection.restoreSelection()
+          }
 
           let status = this.status(cmd)
           i.classList[status ? 'add' : 'remove']('c-edit-icon-active')
@@ -180,11 +188,16 @@ class Editor {
   }
 
   exec(cmd, params) {
-    this.restoreSelection()
+    this.selection.restoreSelection()
+    if (cmd === 'bold') {
+      document.execCommand('bold', false)
+    } else {
+      document.execCommand(cmd, false, params)
+    }
 
-    document.execCommand(cmd, false, params)
-    this.selection()
-    this.restoreSelection()
+    this.selection.saveRange()
+
+    this.selection.restoreSelection()
   }
 }
 

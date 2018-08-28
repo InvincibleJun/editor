@@ -20,8 +20,6 @@ export default class Paste {
     let { items } = clipboardData
     if (clipboardData && items) {
       Object.keys(items).forEach(key => {
-        // debugger
-
         let item = items[key]
         let { kind, type } = item
         if (kind === 'file') {

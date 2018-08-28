@@ -6,7 +6,7 @@ const animation = function(el, option, events, timeout) {
 
   enter && el.classList.add(enter)
   to && el.classList.add(to)
-  // debugger
+
   setTimeout(function() {
     el.classList.add(active)
     enter && el.classList.remove(enter)
