@@ -58,7 +58,7 @@ const mergeStyle = function(style) {
     let s = ''
     for (let i in style) {
       if (style.hasOwnProperty(i)) {
-        s += `${makeStyleName(i)}:${style[i]};`
+        s += `${makeStyleName(i)}:${makeValue(style[i], i)};`
       }
     }
     return s
@@ -73,6 +73,20 @@ const makeStyleName = function(s) {
   return s.replace(/[A-Z]/, function(word) {
     return `-${word.toUpperCase()}`
   })
+}
+
+/**
+ * 添加单位
+ * @param {number} v style属性名
+ * @param {string} k style属性值
+ * @param {any} 属性值
+ */
+const makeValue = function(v, k) {
+  if (typeof v !== 'number') return v
+  if (['width', 'height', 'marginLeft', 'marginRight'].includes(k)) {
+    return v + 'px'
+  }
+  return v
 }
 
 export default render

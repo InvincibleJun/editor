@@ -12,6 +12,8 @@ import Paste from './events/paste'
 
 import Selection from './selection/range'
 
+import * as subTools from './tools/index'
+
 class Editor {
   constructor(selector, config) {
     this.selector = selector
@@ -24,11 +26,11 @@ class Editor {
     // dom元素初始化
     this.domInit()
 
-    // 工具栏初始化
-    this.toolsInit()
-
     // selection对象初始化
     this.selectionInit()
+
+    // 工具栏初始化
+    this.toolsInit()
 
     // 事件初始化
     this.eventInit()
@@ -113,22 +115,32 @@ class Editor {
 
   toolsInit() {
     const { tools } = this.config
-    var toolbar = document.createElement('div')
-
-    toolbar.classList.add('c-editor-toolbar-wrapper')
+    const toolbar = document.createElement('div')
+    const toolsCollect = {}
 
     forEach(tools, (val, key) => {
       if (!this.supporNames.includes(key)) return
       let i = document.createElement('i')
 
-      if (key && typeof key === 'string') {
-        i.classList.add(val)
+      let classNames =
+        typeof val === 'string' ? val.split(' ') : isArray(val) ? val : []
+
+      classNames.forEach(v => i.classList.add(v))
+
+      const Sub = subTools[key]
+      console.log(subTools)
+
+      if (Sub) {
+        toolsCollect[key] = new Sub(i, this)
       }
 
       toolbar.appendChild(i)
     })
 
+    toolbar.classList.add('c-editor-toolbar-wrapper')
+
     this.container.insertBefore(toolbar, this.editorWrapper)
+    this._toolsCollect = toolsCollect
   }
 
   focus(e) {}
@@ -156,23 +168,7 @@ class Editor {
       } else if (cmd === 'fontSize') {
         fontSizeSelector(i, exec, cmd)
       } else if (cmd === 'bold') {
-        addEvent(i, 'click', e => {
-          let isEmpty = this.selection.isEmpty()
-          if (isEmpty) {
-            this.selection.createEmpty()
-          }
-
-          this.exec('bold', params)
-
-          if (isEmpty) {
-            // 需要将选取折叠起来
-            this.selection.collapseRange()
-            this.selection.restoreSelection()
-          }
-
-          let status = this.status(cmd)
-          i.classList[status ? 'add' : 'remove']('c-edit-icon-active')
-        })
+        addEvent(i, 'click', e => {})
       }
     }
 

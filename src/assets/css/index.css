@@ -43,6 +43,7 @@
 
 .c-edit-drop-modal-view {
   position: absolute;
+  box-sizing: border-box;
   border: 1px solid black;
 }
 
@@ -180,4 +181,21 @@
 .c-editor-image-uploading::after {
   background: #ccc;
   content: '23123';
+}
+/* slide */
+.c-editor-slide {
+  position: relative;
+  box-sizing: border-box;
+}
+.c-editor-slide-container {
+  border-radius: 8px;
+  background-color: #ccc;
+}
+.c-editor-slide-chunk {
+  position: absolute;
+  border-radius: 1px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+  z-index: 1;
 }

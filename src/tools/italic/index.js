@@ -1,10 +1,10 @@
 import { addEvent } from '../../utils/dom-core'
 
-export default class Bold {
+export default class Italic {
   constructor(el, editor) {
     this.el = el
     this.editor = editor
-    this._cmd = 'bold'
+    this._cmd = 'italic'
     this._status = false
     this.init()
   }

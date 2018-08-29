@@ -9,7 +9,8 @@ export default {
     foreColor: 'iconfont icon-h1',
     fontSize: 'iconfont icon-wenzi',
     image: 'iconfont icon-image',
-    video: 'iconfont icon-shipin'
+    video: 'iconfont icon-shipin',
+    color: 'iconfont icon-kechengliebiao'
   },
   options: {
     image: {

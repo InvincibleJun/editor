@@ -1,25 +1,35 @@
-import dropModal from '../drop-modal'
+import dropModal from '../../components/drop-modal'
 import r from '../../utils/render'
-import { iframeUpload, formDataUpload, uploadAjax } from '../upload'
+import {
+  iframeUpload,
+  formDataUpload,
+  uploadAjax
+} from '../../components/upload'
 import { findEl, setAttr, addEvent, focusEle } from '../../utils/dom-core'
+
+const defaultOptions = {
+  action: '',
+  singleLine: true,
+  uploadUrl: false
+}
 
 /**
  * 多媒体弹框
- * hanlderELement {htmlElement} 触发dom对象
+ * el {htmlElement} 触发dom对象
  * editor {object} 实例化编辑器
  */
 export default class Image {
-  constructor(hanlderELement, editor, type) {
+  constructor(el, editor) {
     this.editor = editor
-    this.ele = hanlderELement
+    this.el = el
 
-    this.options = editor.config
-    debugger
+    this.options = editor.config.options.image
+
     this.init()
   }
 
   init() {
-    let modal = dropModal(this.ele, this.ImageView)
+    let modal = dropModal(this.el, this.View)
     let unbinds = ['dragleave', 'drop', 'dragenter', 'dragover'].map(val =>
       addEvent(document, val, e => {
         e.preventDefault()
@@ -29,13 +39,13 @@ export default class Image {
 
   insert(url) {
     let template =
-      this.type === 'image'
-        ? `<img src="${url}" style="max-width: 100%;" />`
-        : `<iframe src='${url}' frameborder=0 autoplay="false" ></iframe>`
+      // this.type === 'image'
+      `<img src="${url}" style="max-width: 100%;" />`
+    // : `<iframe src='${url}' frameborder=0 autoplay="false" ></iframe>`
 
     if (this.options.singleLine) template += '<p><br /></p>'
 
-    this.ed.exec('insertHTML', template)
+    this.editor.exec('insertHTML', template)
   }
 
   dropFile(e) {
@@ -172,19 +182,6 @@ export default class Image {
     ])
   }
 }
-
-// const Button = function(cb) {}
-
-// const UploadImage = function(cb) {
-//   return r('input', null, {
-//     type: 'file',
-//     on: {
-//       change: file => {
-//         cb(file)
-//       }
-//     }
-//   })
-// }
 
 const LinkImage = function() {
   var input = r('input', [], {

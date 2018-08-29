@@ -88,7 +88,8 @@
       foreColor: 'iconfont icon-h1',
       fontSize: 'iconfont icon-wenzi',
       image: 'iconfont icon-image',
-      video: 'iconfont icon-shipin'
+      video: 'iconfont icon-shipin',
+      color: 'iconfont icon-kechengliebiao'
     },
     options: {
       image: {
@@ -544,7 +545,7 @@
       var s = '';
       for (var i in style) {
         if (style.hasOwnProperty(i)) {
-          s += makeStyleName(i) + ':' + style[i] + ';';
+          s += makeStyleName(i) + ':' + makeValue(style[i], i) + ';';
         }
       }
       return s;
@@ -559,6 +560,20 @@
     return s.replace(/[A-Z]/, function (word) {
       return '-' + word.toUpperCase();
     });
+  };
+
+  /**
+   * 添加单位
+   * @param {number} v style属性名
+   * @param {string} k style属性值
+   * @param {any} 属性值
+   */
+  var makeValue = function makeValue(v, k) {
+    if (typeof v !== 'number') return v;
+    if (['width', 'height', 'marginLeft', 'marginRight'].includes(k)) {
+      return v + 'px';
+    }
+    return v;
   };
 
   var createColorPickerElement = function createColorPickerElement() {
@@ -673,31 +688,25 @@
     };
   };
 
-  var defaultOptions = {
-    action: '',
-    singleLine: true,
-    uploadUrl: false
+  /**
+   * 多媒体弹框
+   * hanlderELement {htmlElement} 触发dom对象
+   * editor {object} 实例化编辑器
+   */
 
-    /**
-     * 多媒体弹框
-     * hanlderELement {htmlElement} 触发dom对象
-     * editor {object} 实例化编辑器
-     */
-  };
-  var Media = function () {
-    function Media(hanlderELement, editor, type) {
-      classCallCheck(this, Media);
+  var Image = function () {
+    function Image(hanlderELement, editor, type) {
+      classCallCheck(this, Image);
 
-      this.ed = editor;
-      this.type = type;
+      this.editor = editor;
       this.ele = hanlderELement;
 
-      this.options = Object.assign({}, defaultOptions, editor.options[type]);
-      console.log(this.options);
+      this.options = editor.config;
+      debugger;
       this.init();
     }
 
-    createClass(Media, [{
+    createClass(Image, [{
       key: 'init',
       value: function init() {
         var modal = dropModal(this.ele, this.ImageView);
@@ -844,7 +853,7 @@
         })]);
       }
     }]);
-    return Media;
+    return Image;
   }();
 
   // import craeteUuid from '../utils/uuid'
@@ -1009,6 +1018,453 @@
     return Selection;
   }();
 
+  var Bold = function () {
+    function Bold(el, editor) {
+      classCallCheck(this, Bold);
+
+      this.el = el;
+      this.editor = editor;
+      this._cmd = 'bold';
+      this._status = false;
+      this.init();
+    }
+
+    createClass(Bold, [{
+      key: 'init',
+      value: function init() {
+        var _this = this;
+
+        this._resigter = addEvent(this.el, 'click', function (e) {
+          return _this.hanlderClick(e);
+        });
+      }
+    }, {
+      key: 'hanlderClick',
+      value: function hanlderClick() {
+        var isEmpty = this.editor.selection.isEmpty();
+
+        if (isEmpty) {
+          this.editor.selection.createEmpty();
+        }
+
+        this.editor.exec(this._cmd);
+
+        if (isEmpty) {
+          // 需要将选取折叠起来
+          this.editor.selection.collapseRange();
+          this.editor.selection.restoreSelection();
+        }
+
+        this._status = this.editor.status(this._cmd);
+        this.toggleActive(this._status);
+      }
+    }, {
+      key: 'toggleActive',
+      value: function toggleActive(status) {
+        this.el.classList[status ? 'add' : 'remove']('c-edit-icon-active');
+      }
+    }, {
+      key: 'destory',
+      value: function destory() {
+        this._resigter();
+      }
+    }]);
+    return Bold;
+  }();
+
+  var Italic = function () {
+    function Italic(el, editor) {
+      classCallCheck(this, Italic);
+
+      this.el = el;
+      this.editor = editor;
+      this._cmd = 'italic';
+      this._status = false;
+      this.init();
+    }
+
+    createClass(Italic, [{
+      key: 'init',
+      value: function init() {
+        var _this = this;
+
+        this._resigter = addEvent(this.el, 'click', function (e) {
+          return _this.hanlderClick(e);
+        });
+      }
+    }, {
+      key: 'hanlderClick',
+      value: function hanlderClick() {
+        var isEmpty = this.editor.selection.isEmpty();
+
+        if (isEmpty) {
+          this.editor.selection.createEmpty();
+        }
+
+        this.editor.exec(this._cmd);
+
+        if (isEmpty) {
+          // 需要将选取折叠起来
+          this.editor.selection.collapseRange();
+          this.editor.selection.restoreSelection();
+        }
+
+        this._status = this.editor.status(this._cmd);
+        this.toggleActive(this._status);
+      }
+    }, {
+      key: 'toggleActive',
+      value: function toggleActive(status) {
+        this.el.classList[status ? 'add' : 'remove']('c-edit-icon-active');
+      }
+    }, {
+      key: 'destory',
+      value: function destory() {
+        this._resigter();
+      }
+    }]);
+    return Italic;
+  }();
+
+  var Image$1 = function () {
+    function Image(el, editor) {
+      classCallCheck(this, Image);
+
+      this.editor = editor;
+      this.el = el;
+
+      this.options = editor.config.options.image;
+
+      this.init();
+    }
+
+    createClass(Image, [{
+      key: 'init',
+      value: function init() {
+        var modal = dropModal(this.el, this.ImageView);
+        var unbinds = ['dragleave', 'drop', 'dragenter', 'dragover'].map(function (val) {
+          return addEvent(document, val, function (e) {
+            e.preventDefault();
+          });
+        });
+      }
+    }, {
+      key: 'insert',
+      value: function insert(url) {
+        var template =
+        // this.type === 'image'
+        '<img src="' + url + '" style="max-width: 100%;" />';
+        // : `<iframe src='${url}' frameborder=0 autoplay="false" ></iframe>`
+
+        if (this.options.singleLine) template += '<p><br /></p>';
+
+        this.editor.exec('insertHTML', template);
+      }
+    }, {
+      key: 'dropFile',
+      value: function dropFile(e) {
+        var _this = this;
+
+        e.preventDefault();
+
+        // 过滤文件夹和无后缀文件
+        var fileList = [].filter.call(e.dataTransfer.files, function (val) {
+          return val.type;
+        });
+
+        if (fileList.length === 0) return;
+
+        for (var i = 0; i < fileList.length; i++) {
+          uploadAjax(this.options.action, fileList[i], {
+            load: function load(e, url) {
+              _this.insert(url);
+            }
+          });
+        }
+      }
+    }, {
+      key: 'Button',
+      value: function Button(cb) {
+        return render('button', '上传', {
+          on: {
+            click: function click(e) {
+              cb(e);
+            }
+          }
+        });
+      }
+    }, {
+      key: 'ImageView',
+      get: function get$$1() {
+        var _this2 = this;
+
+        var status = 0;
+        var uploadView = void 0;
+        var urlView = void 0;
+
+        var upload = formDataUpload(this.options.action, {
+          change: function change(e) {},
+
+          load: function load(e, res) {
+            if (!e) {
+              _this2.insert(res);
+            }
+          }
+        });
+
+        var inputUrl = '';
+
+        return render('div', [render('div', [render('button', '上传', {
+          on: {
+            click: function click() {
+              if (status) {
+                uploadView.classList.remove('c-editor-hide');
+                uploadView.classList.add('c-editor-show');
+                urlView.classList.remove('c-editor-show');
+                urlView.classList.add('c-editor-hide');
+                status = 0;
+              }
+            }
+          }
+        }), render('button', '链接', {
+          on: {
+            click: function click() {
+              if (!status) {
+                urlView.classList.remove('c-editor-hide');
+                urlView.classList.add('c-editor-show');
+                uploadView.classList.remove('c-editor-show');
+                uploadView.classList.add('c-editor-hide');
+                status = 1;
+              }
+            }
+          }
+        })]), render('div', [render('input', null, {
+          type: 'text',
+          ref: function ref(i) {
+            return inputUrl = i;
+          },
+          placeholder: '请输入图片url'
+        }), render('button', '提交', {
+          on: {
+            click: function click() {
+              var v = inputUrl.value;
+              // check url include http or https, and is \\
+              if (/^\/\/|http:\/\/|https:\/\//gi.test(v)) {
+                _this2.insert(v);
+              }
+            }
+          }
+        })], {
+          ref: function ref(i) {
+            return urlView = i;
+          },
+          class: 'c-editor-hide'
+        }), render('div', [render('div', '拖拽区域', {
+          on: {
+            drop: function drop(e) {
+              _this2.dropFile(e);
+            },
+            click: function click(e) {
+              e.stopPropagation();
+              upload.select();
+            }
+          },
+          style: {
+            width: '200px',
+            height: '200px',
+            border: '1px solid black'
+          }
+        }), render('button', '提交', {
+          on: {
+            click: function click(e) {
+              upload.send();
+            }
+          }
+        })], {
+          ref: function ref(i) {
+            return uploadView = i;
+          },
+          class: 'c-editor-show'
+        })]);
+      }
+    }]);
+    return Image;
+  }();
+
+  var drag = (function (el, func) {
+    var move = function move(e) {
+      func(e);
+    };
+    var end = function end(e) {
+      func(e);
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', end);
+    };
+    el.addEventListener('mousedown', function (e) {
+      document.onselectstart = function () {
+        return false;
+      };
+      document.ondragstart = function () {
+        return false;
+      };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', end);
+    });
+  });
+
+  function createSlide () {
+    var option = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    if (!option.width) return;
+
+    var _option$direction = option.direction,
+        _option$height = option.height,
+        height = _option$height === undefined ? 10 : _option$height,
+        _option$offset = option.offset,
+        offset = _option$offset === undefined ? 2 : _option$offset,
+        _option$width = option.width,
+        width = _option$width === undefined ? 200 : _option$width,
+        _option$percent = option.percent,
+        _option$chunkWidth = option.chunkWidth,
+        chunkWidth = _option$chunkWidth === undefined ? 4 : _option$chunkWidth,
+        _option$change = option.change,
+        change = _option$change === undefined ? noop : _option$change;
+
+
+    var chunk = void 0;
+
+    var el = render('div', [render('div', [], {
+      style: {
+        width: chunkWidth,
+        marginLeft: -chunkWidth / 2,
+        height: height + offset * 2,
+        left: 0,
+        top: 0
+      },
+      ref: function ref(i) {
+        return chunk = i;
+      },
+
+      class: 'c-editor-slide-chunk'
+    }), render('div', [], {
+      class: 'c-editor-slide-container',
+      style: {
+        width: width,
+        height: height
+      }
+    })], {
+      class: 'c-editor-slide',
+      style: {
+        width: width,
+        height: height + 2 * offset,
+        padding: offset + 'px 0'
+      }
+    });
+
+    var setOffset = function setOffset(o) {
+      chunk.style.left = o + 'px';
+    };
+
+    var onslide = function onslide(e) {
+      var _el$getBoundingClient = el.getBoundingClientRect(),
+          width = _el$getBoundingClient.width,
+          left = _el$getBoundingClient.left,
+          height = _el$getBoundingClient.height,
+          top = _el$getBoundingClient.top;
+
+      var tmp = e.clientX - left;
+
+      tmp = Math.min(tmp, width);
+      tmp = Math.max(0, tmp);
+
+      setOffset(tmp);
+
+      change(tmp / width);
+    };
+
+    drag(chunk, onslide);
+
+    return el;
+  }
+
+  var Bold$1 = function () {
+    function Bold(el, editor) {
+      classCallCheck(this, Bold);
+
+      this.el = el;
+      this.editor = editor;
+      this._cmd = 'bold';
+      // this._status = false
+      this.init();
+    }
+
+    createClass(Bold, [{
+      key: 'init',
+      value: function init() {
+        var modal = dropModal(this.el, this.view);
+      }
+    }, {
+      key: 'hanlderClick',
+      value: function hanlderClick() {
+        var isEmpty = this.editor.selection.isEmpty();
+
+        if (isEmpty) {
+          this.editor.selection.createEmpty();
+        }
+
+        this.editor.exec(this._cmd);
+
+        if (isEmpty) {
+          // 需要将选取折叠起来
+          this.editor.selection.collapseRange();
+          this.editor.selection.restoreSelection();
+        }
+
+        this._status = this.editor.status(this._cmd);
+        this.toggleActive(this._status);
+      }
+    }, {
+      key: 'toggleActive',
+      value: function toggleActive(status) {
+        this.el.classList[status ? 'add' : 'remove']('c-edit-icon-active');
+      }
+    }, {
+      key: 'destory',
+      value: function destory() {
+        this._resigter();
+      }
+    }, {
+      key: 'view',
+      get: function get$$1() {
+        var slide = createSlide({ width: 200 });
+
+        var colorMap = render('div', [render('div', [], {
+          class: 'c-colorpicker-white'
+        }), render('div', [], {
+          class: 'c-colorpicker-black'
+        })], {
+          class: 'c-colorpicker-wrapper',
+          style: {
+            backgroundColor: 'green'
+          }
+        });
+        return render('div', [colorMap, slide
+        // r('div', [], { style: 'width: 200px;height: 200px;background: #ccc' })
+        ]);
+      }
+    }]);
+    return Bold;
+  }();
+
+
+
+  var subTools = /*#__PURE__*/Object.freeze({
+    bold: Bold,
+    italic: Italic,
+    image: Image$1,
+    color: Bold$1
+  });
+
   var Editor = function () {
     function Editor(selector, config$$1) {
       classCallCheck(this, Editor);
@@ -1025,11 +1481,11 @@
         // dom元素初始化
         this.domInit();
 
-        // 工具栏初始化
-        this.toolsInit();
-
         // selection对象初始化
         this.selectionInit();
+
+        // 工具栏初始化
+        this.toolsInit();
 
         // 事件初始化
         this.eventInit();
@@ -1141,21 +1597,32 @@
         var tools = this.config.tools;
 
         var toolbar = document.createElement('div');
-
-        toolbar.classList.add('c-editor-toolbar-wrapper');
+        var toolsCollect = {};
 
         forEach(tools, function (val, key) {
           if (!_this2.supporNames.includes(key)) return;
           var i = document.createElement('i');
 
-          if (key && typeof key === 'string') {
-            i.classList.add(val);
+          var classNames = typeof val === 'string' ? val.split(' ') : isArray(val) ? val : [];
+
+          classNames.forEach(function (v) {
+            return i.classList.add(v);
+          });
+
+          var Sub = subTools[key];
+          console.log(subTools);
+
+          if (Sub) {
+            toolsCollect[key] = new Sub(i, _this2);
           }
 
           toolbar.appendChild(i);
         });
 
+        toolbar.classList.add('c-editor-toolbar-wrapper');
+
         this.container.insertBefore(toolbar, this.editorWrapper);
+        this._toolsCollect = toolsCollect;
       }
     }, {
       key: 'focus',
@@ -1169,8 +1636,6 @@
     }, {
       key: 'createIcon',
       value: function createIcon(icon, cmd, params, name) {
-        var _this3 = this;
-
         var i = document.createElement('i');
         var exec = this.exec.bind(this);
 
@@ -1178,7 +1643,7 @@
         i.classList.add(icon);
 
         if (name === 'image' || name === 'video') {
-          new Media(i, this, name);
+          new Image(i, this, name);
           // let modal = createModal(i)
           // } else if () {
           //   // new Video(i, this)
@@ -1188,23 +1653,7 @@
           } else if (cmd === 'fontSize') {
             fontSizeSelector(i, exec, cmd);
           } else if (cmd === 'bold') {
-            addEvent(i, 'click', function (e) {
-              var isEmpty = _this3.selection.isEmpty();
-              if (isEmpty) {
-                _this3.selection.createEmpty();
-              }
-
-              _this3.exec('bold', params);
-
-              if (isEmpty) {
-                // 需要将选取折叠起来
-                _this3.selection.collapseRange();
-                _this3.selection.restoreSelection();
-              }
-
-              var status = _this3.status(cmd);
-              i.classList[status ? 'add' : 'remove']('c-edit-icon-active');
-            });
+            addEvent(i, 'click', function (e) {});
           }
         }
 
