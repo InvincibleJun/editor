@@ -41,10 +41,14 @@
   display: block;
 }
 
+/* 下拉弹窗 */
 .c-edit-drop-modal-view {
+  border-radius: 4px;
   position: absolute;
   box-sizing: border-box;
-  border: 1px solid black;
+  background-color: #fff;
+  background-clip: padding-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .c-edit-drop-modal-view ul {
@@ -61,7 +65,8 @@
 }
 
 .c-edit-icon-active {
-  background-color: red;
+  background-color: #ccc;
+  border-radius: 2px;
 }
 
 .c-zoom-in-top-enter-active,
@@ -176,7 +181,24 @@
   background-color: #fff;
   border: 1px solid #ccc;
 }
+.c-editor-modal-title {
+  margin: 4px;
+}
 .c-editor-input {
+  display: inline-block;
+  height: 32px;
+  line-height: 1.5;
+  padding: 4px 7px;
+  font-size: 12px;
+  box-sizing: border-box;
+  margin: 10px;
+  border: 1px solid #dcdee2;
+  border-radius: 4px;
+  color: #515a6e;
+  background-color: #fff;
+  background-image: none;
+  position: relative;
+  cursor: text;
 }
 .c-editor-image-uploading::after {
   background: #ccc;
@@ -198,4 +220,63 @@
   border: 1px solid #f0f0f0;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
   z-index: 1;
+}
+.e-editor-image-view {
+  width: 240px;
+}
+.c-editor-label {
+  display: inline-block;
+  width: 40px;
+  margin: 0 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+.c-editor-label-active {
+  border-bottom: 1px solid #000;
+}
+.c-editor-label-mid {
+  width: 2px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  background-color: #ccc;
+}
+.c-editor-upload-area {
+  margin: 20px;
+  width: 200px;
+  height: 80px;
+  text-align: center;
+  line-height: 60px;
+  border-radius: 6px;
+  background-color: rgb(240, 240, 240);
+  /* border: 1px solid #ccc; */
+}
+.c-editor-button {
+  margin: 10px auto;
+  font-size: 15px;
+  border-radius: 2px;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  border-color: #dcdee2;
+}
+.c-editor-font-size-wrapper li {
+  margin: 0;
+  line-height: normal;
+  padding: 7px 16px;
+  clear: both;
+  color: #515a6e;
+  font-size: 12px !important;
+  white-space: nowrap;
+  list-style: none;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+.c-editor-font-size-wrapper li:hover {
+  background: #ccc;
 }

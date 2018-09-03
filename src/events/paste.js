@@ -6,7 +6,6 @@ let uuid = 0
 export default class Paste {
   constructor(editor) {
     this.ed = editor
-    // this.exec = exec
     this.init()
   }
 
@@ -47,6 +46,8 @@ export default class Paste {
           let uuid = 1
 
           item.getAsString(s => {
+            // debugger
+
             s = s
               .replace(/<(div|p|img|a|span)([^>]+)>/gi, (word, $1, $2) => {
                 if ($1 === 'img') {
@@ -62,6 +63,10 @@ export default class Paste {
               })
               .replace(/<!--(StartFragment|EndFragment)-->/, '')
 
+            this.ed.exec('insertHTML', s)
+          })
+        } else if (type === 'text/plain') {
+          item.getAsString(s => {
             this.ed.exec('insertHTML', s)
           })
         }

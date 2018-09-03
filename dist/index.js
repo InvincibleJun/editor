@@ -81,11 +81,11 @@
     tools: {
       bold: 'iconfont icon-bold',
       italic: 'iconfont icon-italic',
-      justifyLeft: 'iconfont icon-text-left',
-      justifyCenter: 'iconfont icon-text-center',
-      justifyRight: 'iconfont icon-text-right',
-      underline: 'iconfont icon-underline',
-      foreColor: 'iconfont icon-h1',
+      // justifyLeft: 'iconfont icon-text-left',
+      // justifyCenter: 'iconfont icon-text-center',
+      // justifyRight: 'iconfont icon-text-right',
+      // underline: 'iconfont icon-underline',
+      // foreColor: 'iconfont icon-h1',
       fontSize: 'iconfont icon-wenzi',
       image: 'iconfont icon-image',
       video: 'iconfont icon-shipin',
@@ -159,6 +159,7 @@
           top = _el$getBoundingClient.top,
           height = _el$getBoundingClient.height;
 
+      el.classList.add('c-edit-icon-active');
       wrapper.style.left = left + 'px';
       wrapper.style.top = top + height + 'px';
       animation(wrapper, {
@@ -176,6 +177,7 @@
               active: 'c-zoom-in-top-leave-active'
             }, {
               start: function start() {
+                el.classList.remove('c-edit-icon-active');
               },
               end: function end() {
                 wrapper.style.display = 'none';
@@ -864,7 +866,6 @@
       classCallCheck(this, Paste);
 
       this.ed = editor;
-      // this.exec = exec
       this.init();
     }
 
@@ -914,6 +915,8 @@
               var _uuid = 1;
 
               item.getAsString(function (s) {
+                // debugger
+
                 s = s.replace(/<(div|p|img|a|span)([^>]+)>/gi, function (word, $1, $2) {
                   if ($1 === 'img') {
                     // 外链图片处理
@@ -923,6 +926,10 @@
                   return word.replace($2, '');
                 }).replace(/<!--(StartFragment|EndFragment)-->/, '');
 
+                _this2.ed.exec('insertHTML', s);
+              });
+            } else if (type === 'text/plain') {
+              item.getAsString(function (s) {
                 _this2.ed.exec('insertHTML', s);
               });
             }
@@ -1160,6 +1167,11 @@
 
         this.editor.exec('insertHTML', template);
       }
+
+      // reset() {
+      //
+      // }
+
     }, {
       key: 'dropFile',
       value: function dropFile(e) {
@@ -1183,17 +1195,6 @@
         }
       }
     }, {
-      key: 'Button',
-      value: function Button(cb) {
-        return render('button', '上传', {
-          on: {
-            click: function click(e) {
-              cb(e);
-            }
-          }
-        });
-      }
-    }, {
       key: 'ImageView',
       get: function get$$1() {
         var _this2 = this;
@@ -1203,7 +1204,9 @@
         var urlView = void 0;
 
         var upload = formDataUpload(this.options.action, {
-          change: function change(e) {},
+          change: function change(e) {
+            upload.send();
+          },
 
           load: function load(e, res) {
             if (!e) {
@@ -1214,7 +1217,12 @@
 
         var inputUrl = '';
 
-        return render('div', [render('div', [render('button', '上传', {
+        var labelUpload = void 0;
+        var labelLink = void 0;
+
+        return render('div', [render('div', [render('span', '上传', {
+          class: 'c-editor-label c-editor-label-active',
+
           on: {
             click: function click() {
               if (status) {
@@ -1222,11 +1230,19 @@
                 uploadView.classList.add('c-editor-show');
                 urlView.classList.remove('c-editor-show');
                 urlView.classList.add('c-editor-hide');
+                labelLink.classList.remove('c-editor-label-active');
+                labelUpload.classList.add('c-editor-label-active');
                 status = 0;
               }
             }
+          },
+          ref: function ref(i) {
+            return labelUpload = i;
           }
-        }), render('button', '链接', {
+        }), render('span', null, {
+          class: 'c-editor-label-mid'
+        }), render('span', '链接', {
+          class: 'c-editor-label',
           on: {
             click: function click() {
               if (!status) {
@@ -1234,17 +1250,26 @@
                 urlView.classList.add('c-editor-show');
                 uploadView.classList.remove('c-editor-show');
                 uploadView.classList.add('c-editor-hide');
+                labelUpload.classList.remove('c-editor-label-active');
+                labelLink.classList.add('c-editor-label-active');
                 status = 1;
               }
             }
+          },
+          ref: function ref(i) {
+            return labelLink = i;
           }
-        })]), render('div', [render('input', null, {
+        })], {
+          class: 'c-editor-modal-title'
+        }), render('div', [render('input', null, {
+          class: 'c-editor-input',
           type: 'text',
           ref: function ref(i) {
             return inputUrl = i;
           },
           placeholder: '请输入图片url'
         }), render('button', '提交', {
+          class: 'c-editor-button',
           on: {
             click: function click() {
               var v = inputUrl.value;
@@ -1269,23 +1294,15 @@
               upload.select();
             }
           },
-          style: {
-            width: '200px',
-            height: '200px',
-            border: '1px solid black'
-          }
-        }), render('button', '提交', {
-          on: {
-            click: function click(e) {
-              upload.send();
-            }
-          }
+          class: 'c-editor-upload-area'
         })], {
           ref: function ref(i) {
             return uploadView = i;
           },
           class: 'c-editor-show'
-        })]);
+        })], {
+          class: 'e-editor-image-view'
+        });
       }
     }]);
     return Image;
@@ -1456,13 +1473,60 @@
     return Bold;
   }();
 
+  var optionMap$1 = [{ value: 1, size: 14, inner: 'x-small' }, { value: 2, size: 16, inner: 'small' }, { value: 3, size: 18, inner: 'normal' }, { value: 4, size: 20, inner: 'large' }, { value: 5, size: 22, inner: 'x-large' }, { value: 6, size: 24, inner: 'xx-large' }];
+
+  var DropdownView$1 = function DropdownView() {
+    var lis = optionMap$1.map(function (val) {
+      return render('li', val.inner, {
+        value: val.value,
+        style: 'font-size: ' + val.inner
+      });
+    });
+    return render('ul', lis, {
+      class: 'c-editor-font-size-wrapper'
+    });
+  };
+
+  var FontSize = function () {
+    function FontSize(el, editor) {
+      classCallCheck(this, FontSize);
+
+      this.el = el;
+      this.editor = editor;
+      this._cmd = 'fontSize';
+      // this._status = false
+      this.init();
+    }
+
+    createClass(FontSize, [{
+      key: 'init',
+      value: function init() {
+        var _this = this;
+
+        var childs = DropdownView$1();
+        dropModal(this.el, childs);
+
+        addEvent(childs, 'click', function (e) {
+          var target = e.target;
+          var value = target.getAttribute('value');
+          // exec(cmd, value)
+          // debugger
+          _this.editor.exec(_this._cmd, +value);
+          // console.log(this._cmd, value)
+        });
+      }
+    }]);
+    return FontSize;
+  }();
+
 
 
   var subTools = /*#__PURE__*/Object.freeze({
     bold: Bold,
     italic: Italic,
     image: Image$1,
-    color: Bold$1
+    color: Bold$1,
+    fontSize: FontSize
   });
 
   var Editor = function () {
@@ -1490,10 +1554,6 @@
         // 事件初始化
         this.eventInit();
         // 选区对象
-
-        // 焦点位置
-
-        new Paste(this);
 
         this.create();
       }
@@ -1549,9 +1609,7 @@
         addEvent(this.editor, 'keydown', function (e) {
           return _this.keydown(e);
         });
-        addEvent(this.editor, 'paste', function (e) {
-          return _this.paste(e);
-        });
+        this.paste = new Paste(this);
         addEvent(this.editor, 'keyup', function (e) {
           return _this.keyup(e);
         });
@@ -1610,7 +1668,6 @@
           });
 
           var Sub = subTools[key];
-          console.log(subTools);
 
           if (Sub) {
             toolsCollect[key] = new Sub(i, _this2);
@@ -1630,7 +1687,7 @@
     }, {
       key: 'blur',
       value: function blur(e) {
-        // this.saveRange()
+        this.selection.saveRange();
         // 失焦时保存当前range对象
       }
     }, {
@@ -1673,11 +1730,7 @@
       key: 'exec',
       value: function exec(cmd, params) {
         this.selection.restoreSelection();
-        if (cmd === 'bold') {
-          document.execCommand('bold', false);
-        } else {
-          document.execCommand(cmd, false, params);
-        }
+        document.execCommand(cmd, false, params);
 
         this.selection.saveRange();
 

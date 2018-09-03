@@ -48,6 +48,10 @@ export default class Image {
     this.editor.exec('insertHTML', template)
   }
 
+  // reset() {
+  //
+  // }
+
   dropFile(e) {
     e.preventDefault()
 
@@ -65,23 +69,15 @@ export default class Image {
     }
   }
 
-  Button(cb) {
-    return r('button', '上传', {
-      on: {
-        click: e => {
-          cb(e)
-        }
-      }
-    })
-  }
-
   get ImageView() {
     let status = 0
     let uploadView
     let urlView
 
     let upload = formDataUpload(this.options.action, {
-      change(e) {},
+      change(e) {
+        upload.send()
+      },
       load: (e, res) => {
         if (!e) {
           this.insert(res)
@@ -91,102 +87,118 @@ export default class Image {
 
     let inputUrl = ''
 
-    return r('div', [
-      r('div', [
-        r('button', '上传', {
-          on: {
-            click: () => {
-              if (status) {
-                uploadView.classList.remove('c-editor-hide')
-                uploadView.classList.add('c-editor-show')
-                urlView.classList.remove('c-editor-show')
-                urlView.classList.add('c-editor-hide')
-                status = 0
-              }
-            }
-          }
-        }),
-        r('button', '链接', {
-          on: {
-            click: () => {
-              if (!status) {
-                urlView.classList.remove('c-editor-hide')
-                urlView.classList.add('c-editor-show')
-                uploadView.classList.remove('c-editor-show')
-                uploadView.classList.add('c-editor-hide')
-                status = 1
-              }
-            }
-          }
-        })
-      ]),
+    let labelUpload
+    let labelLink
 
-      r(
-        'div',
-        [
-          r('input', null, {
-            type: 'text',
-            ref: i => (inputUrl = i),
-            placeholder: '请输入图片url'
-          }),
-          r('button', '提交', {
-            on: {
-              click: () => {
-                let v = inputUrl.value
-                // check url include http or https, and is \\
-                if (/^\/\/|http:\/\/|https:\/\//gi.test(v)) {
-                  this.insert(v)
+    return r(
+      'div',
+      [
+        r(
+          'div',
+          [
+            r('span', '上传', {
+              class: 'c-editor-label c-editor-label-active',
+
+              on: {
+                click: () => {
+                  if (status) {
+                    uploadView.classList.remove('c-editor-hide')
+                    uploadView.classList.add('c-editor-show')
+                    urlView.classList.remove('c-editor-show')
+                    urlView.classList.add('c-editor-hide')
+                    labelLink.classList.remove('c-editor-label-active')
+                    labelUpload.classList.add('c-editor-label-active')
+                    status = 0
+                  }
+                }
+              },
+              ref: i => (labelUpload = i)
+            }),
+            r('span', null, {
+              class: 'c-editor-label-mid'
+            }),
+            r('span', '链接', {
+              class: 'c-editor-label',
+              on: {
+                click: () => {
+                  if (!status) {
+                    urlView.classList.remove('c-editor-hide')
+                    urlView.classList.add('c-editor-show')
+                    uploadView.classList.remove('c-editor-show')
+                    uploadView.classList.add('c-editor-hide')
+                    labelUpload.classList.remove('c-editor-label-active')
+                    labelLink.classList.add('c-editor-label-active')
+                    status = 1
+                  }
+                }
+              },
+              ref: i => (labelLink = i)
+            })
+          ],
+          {
+            class: 'c-editor-modal-title'
+          }
+        ),
+
+        r(
+          'div',
+          [
+            r('input', null, {
+              class: 'c-editor-input',
+              type: 'text',
+              ref: i => (inputUrl = i),
+              placeholder: '请输入图片url'
+            }),
+            r('button', '提交', {
+              class: 'c-editor-button',
+              on: {
+                click: () => {
+                  let v = inputUrl.value
+                  // check url include http or https, and is \\
+                  if (/^\/\/|http:\/\/|https:\/\//gi.test(v)) {
+                    this.insert(v)
+                  }
                 }
               }
-            }
-          })
-        ],
-        {
-          ref: i => (urlView = i),
-          class: 'c-editor-hide'
-        }
-      ),
+            })
+          ],
+          {
+            ref: i => (urlView = i),
+            class: 'c-editor-hide'
+          }
+        ),
 
-      r(
-        'div',
-        [
-          r('div', '拖拽区域', {
-            on: {
-              drop: e => {
-                this.dropFile(e)
+        r(
+          'div',
+          [
+            r('div', '拖拽区域', {
+              on: {
+                drop: e => {
+                  this.dropFile(e)
+                },
+                click: e => {
+                  e.stopPropagation()
+                  upload.select()
+                }
               },
-              click: e => {
-                e.stopPropagation()
-                upload.select()
-              }
-            },
-            style: {
-              width: '200px',
-              height: '200px',
-              border: '1px solid black'
-            }
-          }),
-          r('button', '提交', {
-            on: {
-              click: e => {
-                upload.send()
-              }
-            }
-          })
-        ],
-        {
-          ref: i => (uploadView = i),
-          class: 'c-editor-show'
-        }
-      )
-    ])
+              class: 'c-editor-upload-area'
+            })
+          ],
+          {
+            ref: i => (uploadView = i),
+            class: 'c-editor-show'
+          }
+        )
+      ],
+      {
+        class: 'e-editor-image-view'
+      }
+    )
   }
 }
 
 const LinkImage = function() {
-  var input = r('input', [], {
-    class: 'c-editor-input'
-  })
+  var input = r('input', [], {})
 
   return input
 }

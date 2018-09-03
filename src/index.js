@@ -36,10 +36,6 @@ class Editor {
     this.eventInit()
     // 选区对象
 
-    // 焦点位置
-
-    new Paste(this)
-
     this.create()
   }
 
@@ -79,7 +75,7 @@ class Editor {
     addEvent(this.editor, 'blur', () => this.blur())
     addEvent(this.editor, 'focus', () => this.focus())
     addEvent(this.editor, 'keydown', e => this.keydown(e))
-    addEvent(this.editor, 'paste', e => this.paste(e))
+    this.paste = new Paste(this)
     addEvent(this.editor, 'keyup', e => this.keyup(e))
   }
 
@@ -128,7 +124,6 @@ class Editor {
       classNames.forEach(v => i.classList.add(v))
 
       const Sub = subTools[key]
-      console.log(subTools)
 
       if (Sub) {
         toolsCollect[key] = new Sub(i, this)
@@ -146,7 +141,7 @@ class Editor {
   focus(e) {}
 
   blur(e) {
-    // this.saveRange()
+    this.selection.saveRange()
     // 失焦时保存当前range对象
   }
 
@@ -185,11 +180,7 @@ class Editor {
 
   exec(cmd, params) {
     this.selection.restoreSelection()
-    if (cmd === 'bold') {
-      document.execCommand('bold', false)
-    } else {
-      document.execCommand(cmd, false, params)
-    }
+    document.execCommand(cmd, false, params)
 
     this.selection.saveRange()
 

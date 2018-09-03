@@ -28,6 +28,7 @@ export default (el, child, events) => {
 
   let unbind = addEvent(el, 'click', function(e) {
     let { left, top, height } = el.getBoundingClientRect()
+    el.classList.add('c-edit-icon-active')
     wrapper.style.left = left + 'px'
     wrapper.style.top = top + height + 'px'
     animation(
@@ -54,6 +55,7 @@ export default (el, child, events) => {
               },
               {
                 start: () => {
+                  el.classList.remove('c-edit-icon-active')
                   show = false
                   active = true
                 },
