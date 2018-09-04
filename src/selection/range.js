@@ -10,7 +10,6 @@ export default class Selection {
 
   // 保存光标位置
   saveRange(_range) {
-    console.log('save')
     if (_range) {
       this._range = _range
       return
@@ -22,7 +21,6 @@ export default class Selection {
 
     // selection可包含多个range对象，一般而言取第一个
     this._range = selection.getRangeAt(0)
-    console.log(this._range)
   }
 
   // 恢复选区

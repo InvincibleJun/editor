@@ -81,9 +81,9 @@
     tools: {
       bold: 'iconfont icon-bold',
       italic: 'iconfont icon-italic',
-      // justifyLeft: 'iconfont icon-text-left',
-      // justifyCenter: 'iconfont icon-text-center',
-      // justifyRight: 'iconfont icon-text-right',
+      justifyLeft: 'iconfont icon-text-left',
+      justifyCenter: 'iconfont icon-text-center',
+      justifyRight: 'iconfont icon-text-right',
       // underline: 'iconfont icon-underline',
       // foreColor: 'iconfont icon-h1',
       fontSize: 'iconfont icon-wenzi',
@@ -151,43 +151,67 @@
 
   var dropModal = (function (el, child, events) {
     ++uuid;
+
     var wrapper = createWrapper(child);
 
+    var show = false;
+
+    var active = false;
+
+    var unbindBody = function unbindBody() {};
+
     var unbind = addEvent(el, 'click', function (e) {
+      if (active) return;
+
+      if (show) hide();
+
       var _el$getBoundingClient = el.getBoundingClientRect(),
           left = _el$getBoundingClient.left,
           top = _el$getBoundingClient.top,
           height = _el$getBoundingClient.height;
 
       el.classList.add('c-edit-icon-active');
+
       wrapper.style.left = left + 'px';
+
       wrapper.style.top = top + height + 'px';
+
       animation(wrapper, {
         enter: 'c-zoom-in-top-enter',
         active: 'c-zoom-in-top-enter-active'
       }, {
         start: function start() {
+          show = true;
+          active = true;
           wrapper.style.display = 'block';
         },
         end: function end() {
-          var unbindBody = addEvent(document.body, 'click', function (e) {
+          active = false;
+          unbindBody = addEvent(document.body, 'click', function (e) {
             if (checkTarget(e.target, wrapper)) return;
-            animation(wrapper, {
-              to: 'c-zoom-in-top-leave',
-              active: 'c-zoom-in-top-leave-active'
-            }, {
-              start: function start() {
-                el.classList.remove('c-edit-icon-active');
-              },
-              end: function end() {
-                wrapper.style.display = 'none';
-                unbindBody();
-              }
-            }, 400);
+            hide();
           });
         }
       }, 400);
     });
+
+    function hide() {
+      animation(wrapper, {
+        to: 'c-zoom-in-top-leave',
+        active: 'c-zoom-in-top-leave-active'
+      }, {
+        start: function start() {
+          el.classList.remove('c-edit-icon-active');
+          active = true;
+        },
+        end: function end() {
+          active = false;
+          show = false;
+          wrapper.style.display = 'none';
+          unbindBody();
+        }
+      }, 400);
+    }
   });
 
   var checkTarget = function checkTarget(target, ele) {
@@ -221,6 +245,30 @@
       return Constructor;
     };
   }();
+
+  var inherits = function (subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  };
+
+  var possibleConstructorReturn = function (self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  };
 
   var slicedToArray = function () {
     function sliceIterator(arr, i) {
@@ -578,60 +626,6 @@
     return v;
   };
 
-  var createColorPickerElement = function createColorPickerElement() {
-    var refs = {};
-    var ele = render('div', [render('div', [render('span', null, {
-      class: 'c-colorpicker-hue-cursor',
-      ref: function ref(d) {
-        refs.cursor = d;
-      }
-    })], {
-      class: 'c-colorpicker-hue',
-      ref: function ref(d) {
-        refs.hue = d;
-      }
-    }), render('div', [render('div', null, { class: 'c-colorpicker-white' }), render('div', null, { class: 'c-colorpicker-black' }), render('span', null, { class: 'c-colorpicker-cursor' })], {
-      class: 'c-colorpicker-wrapper'
-    }), render('input', null, {})], {
-      ref: function ref(d) {
-        refs.container = d;
-      }
-    });
-
-    return { ele: ele, refs: refs };
-  };
-
-  var colorSelector = (function (i, cmd, params) {
-    var _createColorPickerEle = createColorPickerElement(),
-        ele = _createColorPickerEle.ele;
-    var modal = dropModal(i, ele);
-
-    addEvent(i, 'click');
-  });
-
-  var optionMap = [{ value: 1, size: 14, inner: 'x-small' }, { value: 2, size: 16, inner: 'small' }, { value: 3, size: 18, inner: 'normal' }, { value: 4, size: 20, inner: 'large' }, { value: 5, size: 22, inner: 'x-large' }, { value: 6, size: 24, inner: 'xx-large' }];
-
-  var DropdownView = function DropdownView() {
-    var lis = optionMap.map(function (val) {
-      return render('li', val.inner, { value: val.value });
-    });
-    return render('ul', lis, {
-      class: 'c-editor-font-size-wrapper'
-    });
-  };
-
-  var fontSizeSelector = (function (ele, exec, cmd) {
-    // ele.
-    var childs = DropdownView();
-    dropModal(ele, childs);
-
-    addEvent(childs, 'click', function (e) {
-      var target = e.target;
-      var value = target.getAttribute('value');
-      exec(cmd, value);
-    });
-  });
-
   var formDataUpload = function formDataUpload(url, _ref) {
     var change = _ref.change,
         load = _ref.load;
@@ -959,7 +953,6 @@
     }, {
       key: 'saveRange',
       value: function saveRange(_range) {
-        console.log('save');
         if (_range) {
           this._range = _range;
           return;
@@ -971,7 +964,6 @@
 
         // selection可包含多个range对象，一般而言取第一个
         this._range = selection.getRangeAt(0);
-        console.log(this._range);
       }
 
       // 恢复选区
@@ -1308,6 +1300,154 @@
     return Image;
   }();
 
+  var Video = function () {
+    function Video(el, editor) {
+      classCallCheck(this, Video);
+
+      this.editor = editor;
+      this.el = el;
+
+      this.options = editor.config.options.image;
+
+      this.init();
+    }
+
+    createClass(Video, [{
+      key: 'init',
+      value: function init() {
+        var modal = dropModal(this.el, this.View);
+      }
+    }, {
+      key: 'insert',
+      value: function insert(url) {
+        var template = '<iframe src=\'' + url + '\' frameborder=0 autoplay="false" ></iframe>';
+
+        if (this.options.singleLine) template += '<p><br /></p>';
+
+        this.editor.exec('insertHTML', template);
+      }
+    }, {
+      key: 'Button',
+      value: function Button(cb) {
+        return render('button', '上传', {
+          on: {
+            click: function click(e) {
+              cb(e);
+            }
+          }
+        });
+      }
+    }, {
+      key: 'View',
+      get: function get$$1() {
+        var _this = this;
+
+        var status = 0;
+        var uploadView = void 0;
+        var urlView = void 0;
+        var labelUpload = void 0;
+        var labelLink = void 0;
+
+        var upload = formDataUpload(this.options.action, {
+          change: function change(e) {},
+
+          load: function load(e, res) {
+            if (!e) {
+              _this.insert(res);
+            }
+          }
+        });
+
+        var inputUrl = '';
+
+        return render('div', [render('div', [render('span', '上传', {
+          class: 'c-editor-label c-editor-label-active',
+
+          on: {
+            click: function click() {
+              if (status) {
+                uploadView.classList.remove('c-editor-hide');
+                uploadView.classList.add('c-editor-show');
+                urlView.classList.remove('c-editor-show');
+                urlView.classList.add('c-editor-hide');
+                labelLink.classList.remove('c-editor-label-active');
+                labelUpload.classList.add('c-editor-label-active');
+                status = 0;
+              }
+            }
+          },
+          ref: function ref(i) {
+            return labelUpload = i;
+          }
+        }), render('span', null, {
+          class: 'c-editor-label-mid'
+        }), render('span', '链接', {
+          class: 'c-editor-label',
+          on: {
+            click: function click() {
+              if (!status) {
+                urlView.classList.remove('c-editor-hide');
+                urlView.classList.add('c-editor-show');
+                uploadView.classList.remove('c-editor-show');
+                uploadView.classList.add('c-editor-hide');
+                labelUpload.classList.remove('c-editor-label-active');
+                labelLink.classList.add('c-editor-label-active');
+                status = 1;
+              }
+            }
+          },
+          ref: function ref(i) {
+            return labelLink = i;
+          }
+        })], {
+          class: 'c-editor-modal-title'
+        }), render('div', [render('input', null, {
+          class: 'c-editor-input',
+          type: 'text',
+          ref: function ref(i) {
+            return inputUrl = i;
+          },
+          placeholder: '请输入视频url'
+        }), render('button', '提交', {
+          class: 'c-editor-button',
+          on: {
+            click: function click() {
+              var v = inputUrl.value;
+              // check url include http or https, and is \\
+              if (/^\/\/|http:\/\/|https:\/\//gi.test(v)) {
+                _this.insert(v);
+              }
+            }
+          }
+        })], {
+          ref: function ref(i) {
+            return urlView = i;
+          },
+          class: 'c-editor-hide'
+        }), render('div', [render('div', '拖拽或点击上传', {
+          on: {
+            drop: function drop(e) {
+              _this.dropFile(e);
+            },
+            click: function click(e) {
+              e.stopPropagation();
+              upload.select();
+            }
+          },
+          class: 'c-editor-upload-area'
+        })], {
+          ref: function ref(i) {
+            return uploadView = i;
+          },
+          class: 'c-editor-show'
+        })], {
+          class: 'e-editor-image-view'
+        });
+      }
+    }]);
+    return Video;
+  }();
+
   var drag = (function (el, func) {
     var move = function move(e) {
       func(e);
@@ -1477,7 +1617,7 @@
 
   var DropdownView$1 = function DropdownView() {
     var lis = optionMap$1.map(function (val) {
-      return render('li', val.inner, {
+      return render('font', val.inner, {
         value: val.value,
         style: 'font-size: ' + val.inner
       });
@@ -1509,25 +1649,139 @@
         addEvent(childs, 'click', function (e) {
           var target = e.target;
           var value = target.getAttribute('value');
-          // exec(cmd, value)
-          // debugger
           _this.editor.exec(_this._cmd, +value);
-          // console.log(this._cmd, value)
         });
       }
     }]);
     return FontSize;
   }();
 
+  var allJustify = ['Center', 'Left', 'Right', 'Full'];
 
+  var Justify = function () {
+    function Justify(el, editor) {
+      classCallCheck(this, Justify);
+
+      this.el = el;
+      this.id = editor.uuid;
+      this.editor = editor;
+      this._status = false;
+      this.init();
+    }
+
+    createClass(Justify, [{
+      key: 'init',
+      value: function init() {
+        var _this = this;
+
+        this._resigter = addEvent(this.el, 'click', function (e) {
+          return _this.hanlderClick(e);
+        });
+      }
+    }, {
+      key: 'hanlderClick',
+      value: function hanlderClick() {
+        this.editor.exec(this._cmd);
+
+        var status = this.editor.status(this._cmd);
+
+        this.toggleActive(status);
+      }
+
+      /**
+       * @params [boolean] status 是否激活
+       * @params [boolean] from 是否外部调用
+       */
+
+    }, {
+      key: 'toggleActive',
+      value: function toggleActive(status, from) {
+        var _this2 = this;
+
+        if (status === this._status) return;
+
+        if (!from) {
+          allJustify.forEach(function (value) {
+            var Sub = _this2.editor._toolsCollect['justify' + value];
+            if (Sub && Sub !== _this2) Sub.toggleActive(false, true);
+          });
+        }
+
+        this.el.classList[status ? 'add' : 'remove']('c-edit-icon-active');
+
+        this._status = status;
+      }
+    }]);
+    return Justify;
+  }();
+
+
+  Justify.tmp = {};
+
+  var JustifyLeft = function (_Justify) {
+    inherits(JustifyLeft, _Justify);
+
+    function JustifyLeft(el, editor) {
+      classCallCheck(this, JustifyLeft);
+
+      var _this = possibleConstructorReturn(this, (JustifyLeft.__proto__ || Object.getPrototypeOf(JustifyLeft)).call(this, el, editor));
+
+      _this._cmd = 'justifyLeft';
+      setTimeout(function () {
+        _this.toggleActive(true);
+      }, 0);
+      return _this;
+    }
+
+    return JustifyLeft;
+  }(Justify);
+
+  var justifyRight = function (_Justify) {
+    inherits(justifyRight, _Justify);
+
+    function justifyRight(el, editor) {
+      classCallCheck(this, justifyRight);
+
+      var _this = possibleConstructorReturn(this, (justifyRight.__proto__ || Object.getPrototypeOf(justifyRight)).call(this, el, editor));
+
+      _this._cmd = 'justifyRight';
+      return _this;
+    }
+
+    return justifyRight;
+  }(Justify);
+
+  var JustifyCenter = function (_Justify) {
+    inherits(JustifyCenter, _Justify);
+
+    function JustifyCenter(el, editor) {
+      classCallCheck(this, JustifyCenter);
+
+      var _this = possibleConstructorReturn(this, (JustifyCenter.__proto__ || Object.getPrototypeOf(JustifyCenter)).call(this, el, editor));
+
+      _this._cmd = 'justifyCenter';
+      return _this;
+    }
+
+    return JustifyCenter;
+  }(Justify);
+
+  // export { default as JustifyRight } from './justify/right'
+  // export { default as JustifyCenter } from './justify/center'
 
   var subTools = /*#__PURE__*/Object.freeze({
     bold: Bold,
     italic: Italic,
     image: Image$1,
+    video: Video,
     color: Bold$1,
-    fontSize: FontSize
+    fontSize: FontSize,
+    justifyLeft: JustifyLeft,
+    justifyRight: justifyRight,
+    justifyCenter: JustifyCenter
   });
+
+  var uuid$2 = 0;
 
   var Editor = function () {
     function Editor(selector, config$$1) {
@@ -1535,6 +1789,7 @@
 
       this.selector = selector;
       this.customerConfig = config$$1;
+      this.id = ++uuid$2;
       this.init();
     }
 
@@ -1687,34 +1942,9 @@
     }, {
       key: 'blur',
       value: function blur(e) {
-        this.selection.saveRange();
         // 失焦时保存当前range对象
-      }
-    }, {
-      key: 'createIcon',
-      value: function createIcon(icon, cmd, params, name) {
-        var i = document.createElement('i');
-        var exec = this.exec.bind(this);
 
-        i.classList.add('iconfont');
-        i.classList.add(icon);
-
-        if (name === 'image' || name === 'video') {
-          new Image(i, this, name);
-          // let modal = createModal(i)
-          // } else if () {
-          //   // new Video(i, this)
-        } else {
-          if (cmd === 'foreColor') {
-            colorSelector(i, cmd, params);
-          } else if (cmd === 'fontSize') {
-            fontSizeSelector(i, exec, cmd);
-          } else if (cmd === 'bold') {
-            addEvent(i, 'click', function (e) {});
-          }
-        }
-
-        return i;
+        this.selection.saveRange();
       }
     }, {
       key: 'toolCickHandler',

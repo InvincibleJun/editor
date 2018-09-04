@@ -14,10 +14,13 @@ import Selection from './selection/range'
 
 import * as subTools from './tools/index'
 
+let uuid = 0
+
 class Editor {
   constructor(selector, config) {
     this.selector = selector
     this.customerConfig = config
+    this.id = ++uuid
     this.init()
   }
 
@@ -141,33 +144,9 @@ class Editor {
   focus(e) {}
 
   blur(e) {
-    this.selection.saveRange()
     // 失焦时保存当前range对象
-  }
 
-  createIcon(icon, cmd, params, name) {
-    let i = document.createElement('i')
-    let exec = this.exec.bind(this)
-
-    i.classList.add('iconfont')
-    i.classList.add(icon)
-
-    if (name === 'image' || name === 'video') {
-      new Media(i, this, name)
-      // let modal = createModal(i)
-      // } else if () {
-      //   // new Video(i, this)
-    } else {
-      if (cmd === 'foreColor') {
-        colorSelector(i, cmd, params)
-      } else if (cmd === 'fontSize') {
-        fontSizeSelector(i, exec, cmd)
-      } else if (cmd === 'bold') {
-        addEvent(i, 'click', e => {})
-      }
-    }
-
-    return i
+    this.selection.saveRange()
   }
 
   toolCickHandler(e, cmd, params) {

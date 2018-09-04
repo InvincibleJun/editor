@@ -2,9 +2,9 @@ export default {
   tools: {
     bold: 'iconfont icon-bold',
     italic: 'iconfont icon-italic',
-    // justifyLeft: 'iconfont icon-text-left',
-    // justifyCenter: 'iconfont icon-text-center',
-    // justifyRight: 'iconfont icon-text-right',
+    justifyLeft: 'iconfont icon-text-left',
+    justifyCenter: 'iconfont icon-text-center',
+    justifyRight: 'iconfont icon-text-right',
     // underline: 'iconfont icon-underline',
     // foreColor: 'iconfont icon-h1',
     fontSize: 'iconfont icon-wenzi',

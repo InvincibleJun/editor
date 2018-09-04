@@ -13,7 +13,7 @@ const optionMap = [
 
 const DropdownView = function() {
   let lis = optionMap.map(val =>
-    render('li', val.inner, {
+    render('font', val.inner, {
       value: val.value,
       style: `font-size: ${val.inner}`
     })
@@ -39,10 +39,7 @@ export default class FontSize {
     addEvent(childs, 'click', e => {
       let target = e.target
       let value = target.getAttribute('value')
-      // exec(cmd, value)
-      // debugger
       this.editor.exec(this._cmd, +value)
-      // console.log(this._cmd, value)
     })
   }
 }

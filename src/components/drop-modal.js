@@ -21,16 +21,28 @@ const createWrapper = function(child) {
 
 export default (el, child, events) => {
   ++uuid
+
   let wrapper = createWrapper(child)
 
   let show = false
+
   let active = false
 
+  let unbindBody = () => {}
+
   let unbind = addEvent(el, 'click', function(e) {
+    if (active) return
+
+    if (show) hide()
+
     let { left, top, height } = el.getBoundingClientRect()
+
     el.classList.add('c-edit-icon-active')
+
     wrapper.style.left = left + 'px'
+
     wrapper.style.top = top + height + 'px'
+
     animation(
       wrapper,
       {
@@ -45,35 +57,38 @@ export default (el, child, events) => {
         },
         end: () => {
           active = false
-          let unbindBody = addEvent(document.body, 'click', function(e) {
+          unbindBody = addEvent(document.body, 'click', function(e) {
             if (checkTarget(e.target, wrapper)) return
-            animation(
-              wrapper,
-              {
-                to: 'c-zoom-in-top-leave',
-                active: 'c-zoom-in-top-leave-active'
-              },
-              {
-                start: () => {
-                  el.classList.remove('c-edit-icon-active')
-                  show = false
-                  active = true
-                },
-                end: () => {
-                  active = false
-                  show = true
-                  wrapper.style.display = 'none'
-                  unbindBody()
-                }
-              },
-              400
-            )
+            hide()
           })
         }
       },
       400
     )
   })
+
+  function hide() {
+    animation(
+      wrapper,
+      {
+        to: 'c-zoom-in-top-leave',
+        active: 'c-zoom-in-top-leave-active'
+      },
+      {
+        start: () => {
+          el.classList.remove('c-edit-icon-active')
+          active = true
+        },
+        end: () => {
+          active = false
+          show = false
+          wrapper.style.display = 'none'
+          unbindBody()
+        }
+      },
+      400
+    )
+  }
 }
 
 const checkTarget = function(target, ele) {

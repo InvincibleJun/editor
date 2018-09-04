@@ -265,17 +265,17 @@
   white-space: nowrap;
   border-color: #dcdee2;
 }
-.c-editor-font-size-wrapper li {
+.c-editor-font-size-wrapper font {
+  display: block;
   margin: 0;
   line-height: normal;
   padding: 7px 16px;
   clear: both;
   color: #515a6e;
-  font-size: 12px !important;
   white-space: nowrap;
   list-style: none;
   cursor: pointer;
-  transition: background 0.2s ease-in-out;
+  /* transition: background 0.2s ease-in-out; */
 }
 .c-editor-font-size-wrapper li:hover {
   background: #ccc;
